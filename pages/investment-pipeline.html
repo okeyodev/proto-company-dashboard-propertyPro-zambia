@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investment Pipeline — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/marketing.css">
+  <link rel="stylesheet" href="../css/pages/investment-pipeline.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <main class="content">
+        <div class="mk-page">
+          <div class="pr-header">
+            <div>
+              <h1>Investment Pipeline</h1>
+              <p>Origination → Screening → Appraisal → Approval → Conditions Precedent → Closing →
+                Monitoring</p>
+            </div>
+            <div class="pr-header-actions"><button class="pr-btn" id="btnExportPipeline">Export</button><button
+                class="pr-btn pr-btn-primary" id="btnAddDeal">Add Deal</button></div>
+          </div>
+          <div class="pipeline-strip" id="pipelineStrip"></div>
+          <div class="mk-controls">
+            <div class="mk-search"><span class="ico">🔍</span><input id="dealSearch"
+                placeholder="Search deals, asset class, owner..." /></div>
+            <div class="chip-row" id="dealFilters"><button class="chip active" data-filter="All">All</button><button
+                class="chip" data-filter="Property">Property</button><button class="chip"
+                data-filter="Fixed Income">Fixed Income</button><button class="chip" data-filter="Listed Equity">Listed
+                Equity</button><button class="chip" data-filter="Unlisted Equity">Unlisted</button></div>
+          </div>
+          <div class="kanban-wrap">
+            <div class="kanban-head">
+              <h3>Vacancy Pipeline • Drag cards to move stage • Click for details</h3>
+              <div class="right"><span class="small muted" id="pipelineStats"></span></div>
+            </div>
+            <div class="kanban-scroll" id="kanbanScroll"></div>
+          </div>
+          <div class="table-card">
+            <div class="t-head">
+              <h3>Deals Table</h3>
+              <div class="t-filters"><select id="fStage" class="select">
+                  <option value="All">All Stages</option>
+                  <option>Origination</option>
+                  <option>Screening</option>
+                  <option>Appraisal</option>
+                  <option>MIC</option>
+                  <option>FIC</option>
+                  <option>Conditions Precedent</option>
+                  <option>Closing</option>
+                  <option>Monitoring</option>
+                </select></div>
+            </div>
+            <div class="table-wrap">
+              <table id="dealTable">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Investment</th>
+                    <th>Class</th>
+                    <th>Amount</th>
+                    <th>Return</th>
+                    <th>Risk</th>
+                    <th>Stage</th>
+                    <th>Owner</th>
+                    <th>Days</th>
+                    <th>Approval</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal-backdrop" id="dealDrawerBackdrop">
+          <div class="modal" style="max-width:640px">
+            <div class="modal-head">
+              <h3 id="dealDrawerTitle">Deal</h3><button class="btn"
+                onclick="document.getElementById('dealDrawerBackdrop').classList.remove('open')">✕</button>
+            </div>
+            <div class="modal-body" id="dealDrawerBody"></div>
+            <div class="modal-foot"><button class="btn"
+                onclick="document.getElementById('dealDrawerBackdrop').classList.remove('open')">Close</button><button
+                class="btn btn-primary" id="btnOpenAppraisal">Open Appraisal</button></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="globalSearchBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex:1"><svg width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="#64748B" stroke-width="1.8">
+            <circle cx="11" cy="11" r="6" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg><input id="globalSearchInput" placeholder="Search..." style="flex:1;border:0;outline:0;font-size:14px"
+            autofocus /></div><button class="btn btn-ghost"
+          onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+      </div>
+      <div class="modal-body">
+        <div id="globalSearchResults"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/common.js"></script>
+  <script src="../js/investment-calculations.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/investment-pipeline.js"></script>
+  <script>Layout.init({ currentPage: 'investment-pipeline' });</script>
+</body>
+
+</html>

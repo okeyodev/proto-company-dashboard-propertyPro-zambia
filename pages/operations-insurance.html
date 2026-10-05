@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Insurance Administration — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/operations.css" />
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="ops-page">
+          <div class="page-head">
+            <div>
+              <h1>Insurance Administration <span class="badge-new">ToR 8.8</span></h1>
+              <p>Policy administration: values, renewals, premiums; risk survey findings; claims lifecycle (log →
+                assessment → offer → payout); insurer register; coverage gap analysis. Linked to valuation (insurance
+                value) and service charges.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportPolicies">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export Policies
+              </button>
+              <button class="btn" id="btnCoverageGap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Coverage Gap
+              </button>
+              <button class="btn btn-primary" id="btnNewPolicy">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                New Policy
+              </button>
+              <button class="btn btn-primary" id="btnLogClaim" style="background:#7C3AED;border-color:#7C3AED">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                Log Claim
+              </button>
+            </div>
+          </div>
+
+          <div class="workflow-strip" id="workflowStrip">
+            <div class="workflow-step done">Policy Active</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Risk Survey</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step active">60-Day Renewal Alert</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Claim Logged</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Assessment</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Payout</div>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <span class="pill blue" id="renewalAlertCount">0 Renewals &lt;60d</span>
+              <span class="pill amber" id="activeClaimsCount">0 Active Claims</span>
+            </div>
+          </div>
+
+          <div class="kpi-grid operations" id="kpiGrid"></div>
+
+          <div class="filters-bar">
+            <div class="filters-left">
+              <div class="filter-group">
+                <label>Search</label>
+                <div class="search-wrap">
+                  <span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.3-4.3" />
+                    </svg></span>
+                  <input id="searchInputLocal" class="search-input"
+                    placeholder="Policy ID, property, insurer, claim no..." />
+                </div>
+              </div>
+              <div class="filter-group"><label>Property</label><select id="filterProperty" class="filter-select">
+                  <option value="">All Properties</option>
+                </select></div>
+              <div class="filter-group"><label>Insurer</label><select id="filterInsurer" class="filter-select">
+                  <option value="">All Insurers</option>
+                </select></div>
+              <div class="filter-group"><label>Renewal Status</label><select id="filterRenewal" class="filter-select">
+                  <option value="">All Status</option>
+                  <option>Active</option>
+                  <option>Due Renewal</option>
+                  <option>Expiring &lt;60d</option>
+                  <option>Expired</option>
+                </select></div>
+              <div class="filter-group"><label>Policy Type</label><select id="filterType" class="filter-select">
+                  <option value="">All Types</option>
+                  <option>Property All Risk</option>
+                  <option>Public Liability</option>
+                  <option>Machinery Breakdown</option>
+                  <option>Business Interruption</option>
+                  <option>Fire & Perils</option>
+                </select></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <button class="btn btn-sm" id="btnResetFilters">Reset Filters</button>
+            </div>
+          </div>
+
+          <!-- Table 1: Policies -->
+          <div class="card" id="policiesCard">
+            <div class="card-head">
+              <h3>Insurance Policies Register • <span id="policyCount">0</span> policies • Sum Insured ZMW <span
+                  id="sumInsuredLabel">0M</span> • Premium <span id="premiumLabel">ZMW 0</span></h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="policyPageSize" class="filter-select" style="height:32px;min-width:100px">
+                  <option value="25">25 / page</option>
+                  <option value="50" selected>50 / page</option>
+                  <option value="100">100 / page</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="policiesTable">
+                <thead>
+                  <tr>
+                    <th>Policy ID</th>
+                    <th>Property</th>
+                    <th>Insurer</th>
+                    <th>Sum Insured (ZMW M)</th>
+                    <th>Annual Premium</th>
+                    <th>Expiry Date</th>
+                    <th>Renewal Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="policiesTbody">
+                  <tr>
+                    <td colspan="8" style="padding:24px;text-align:center;color:#64748B">Loading policies...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div id="policyTableInfo">Showing 0 policies</div>
+              <div style="display:flex;gap:6px"><button class="btn btn-sm" id="policyPrevPage">Prev</button><button
+                  class="btn btn-sm" id="policyNextPage">Next</button></div>
+            </div>
+          </div>
+
+          <!-- Table 2: Claims -->
+          <div class="card" id="claimsCard">
+            <div class="card-head">
+              <h3>Insurance Claims • <span id="claimCount">0</span> claims • Active Value <span
+                  id="activeClaimsValueLabel">ZMW 0</span> • Settlement Ratio <span id="settlementRatioLabel">0%</span>
+              </h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <div class="ops-toggle" id="claimStatusToggle">
+                  <button data-status="all" class="active">All</button>
+                  <button data-status="Pending">Pending</button>
+                  <button data-status="Under Assessment">Assessing</button>
+                  <button data-status="Paid">Paid</button>
+                  <button data-status="Settled">Settled</button>
+                </div>
+                <select id="claimPageSize" class="filter-select" style="height:32px;min-width:100px">
+                  <option value="25">25 / page</option>
+                  <option value="50" selected>50 / page</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="claimsTable">
+                <thead>
+                  <tr>
+                    <th>Claim ID</th>
+                    <th>Property</th>
+                    <th>Policy / Incident Date</th>
+                    <th>Claimed Amount</th>
+                    <th>Insurer Offer</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="claimsTbody">
+                  <tr>
+                    <td colspan="7" style="padding:24px;text-align:center;color:#64748B">Loading claims...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div id="claimTableInfo">Showing 0 claims</div>
+              <div style="display:flex;gap:6px"><button class="btn btn-sm" id="claimPrevPage">Prev</button><button
+                  class="btn btn-sm" id="claimNextPage">Next</button></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <!-- Drawer: Insurance -->
+  <div class="drawer" id="insuranceDrawer">
+    <div class="drawer-head">
+      <div class="drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">INS-POL-0001</h2>
+          <span class="mono" id="drawerId">POL/2026/1000</span>
+          <span class="pill blue" id="drawerStatus">Active</span>
+          <span class="pill amber" id="drawerRenewal">Due in 45d</span>
+        </div>
+        <div class="meta" style="font-size:12px;color:#64748B;margin-top:6px"><span id="drawerSubtitle">Property •
+            Insurer • Type</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-summary" id="drawerSummary"></div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" data-tab="policy">Policy Document</div>
+      <div class="drawer-tab" data-tab="risk">Risk Survey</div>
+      <div class="drawer-tab" data-tab="claims">Claims History</div>
+      <div class="drawer-tab" data-tab="coverage">Coverage</div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-actions" id="drawerActions">
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnViewDoc">View Policy PDF</button><button
+          class="btn btn-sm" id="btnRiskChecklist">Risk Checklist</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnRenewPolicy">Renew Policy</button><button
+          class="btn btn-primary btn-sm" style="background:#7C3AED;border-color:#7C3AED" id="btnDrawerLogClaim">Log New
+          Claim</button></div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu"></div>
+
+  <!-- New Policy Modal -->
+  <div class="modal-backdrop" id="policyModalBackdrop">
+    <div class="modal" style="width:min(720px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800" id="policyModalTitle">New Insurance Policy</h3><button
+          class="btn btn-ghost btn-sm" id="btnClosePolicyModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Property *</label><select id="pProperty" class="form-select"
+              required>
+              <option value="">Select Property</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Insurer *</label><select id="pInsurer" class="form-select">
+              <option>ZSIC General</option>
+              <option>Sanlam General Zambia</option>
+              <option>Professional Insurance</option>
+              <option>Madison General</option>
+              <option>Hollard Zambia</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Policy Type *</label><select id="pType" class="form-select">
+              <option>Property All Risk</option>
+              <option>Public Liability</option>
+              <option>Machinery Breakdown</option>
+              <option>Business Interruption</option>
+              <option>Fire & Perils</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Policy Number *</label><input id="pNumber"
+              class="form-input" placeholder="POL/2026/XXXX" /></div>
+          <div class="form-group"><label class="form-label">Sum Insured (ZMW) *</label><input type="number" id="pSum"
+              class="form-input" placeholder="e.g. 86000000" min="0" /></div>
+          <div class="form-group"><label class="form-label">Annual Premium (ZMW) *</label><input type="number"
+              id="pPremium" class="form-input" placeholder="e.g. 301000" min="0" /></div>
+          <div class="form-group"><label class="form-label">Start Date *</label><input type="date" id="pStart"
+              class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Expiry Date *</label><input type="date" id="pExpiry"
+              class="form-input" /></div>
+          <div class="form-group full">
+            <label class="form-label">Risk Survey Findings</label>
+            <div
+              style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+              <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="risk-check"
+                  value="Fire Extinguishers" checked /> Fire Extinguishers Serviced</label>
+              <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="risk-check"
+                  value="Emergency Exits" checked /> Emergency Exits Clear</label>
+              <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="risk-check"
+                  value="CCTV" /> CCTV Operational</label>
+              <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="risk-check"
+                  value="Security" checked /> Security Guards Present</label>
+              <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="risk-check"
+                  value="Wiring" /> Electrical Wiring Compliant</label>
+              <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="risk-check"
+                  value="Hydrants" /> Hydrants Pressure OK</label>
+            </div>
+          </div>
+          <div class="form-group full"><label class="form-label">Policy Document (DMS)</label>
+            <div class="photo-proof" id="docUploadArea">
+              <div class="ico">📄</div>
+              <div style="font-weight:600;color:#0F172A;font-size:13px">Upload Policy PDF - version control + OCR</div>
+              <div style="font-size:11px">DMS 9.3.1 compliant • Full-text search • Auto-links to property valuation
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelPolicy">Cancel</button><button class="btn btn-primary"
+          id="btnSavePolicy">Save Policy</button></div>
+    </div>
+  </div>
+
+  <!-- Log Claim Modal -->
+  <div class="modal-backdrop" id="claimModalBackdrop">
+    <div class="modal" style="width:min(640px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Log New Insurance Claim</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseClaimModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Policy *</label><select id="cPolicy" class="form-select">
+              <option value="">Select Policy</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Property *</label><select id="cProperty"
+              class="form-select">
+              <option value="">Select Property</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Incident Date *</label><input type="date" id="cIncident"
+              class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Claim Number</label><input id="cNumber" class="form-input"
+              placeholder="Auto-generated if empty" /></div>
+          <div class="form-group full"><label class="form-label">Description *</label><textarea id="cDescription"
+              class="form-textarea" placeholder="Describe incident, damage, cause..."></textarea></div>
+          <div class="form-group"><label class="form-label">Amount Claimed (ZMW) *</label><input type="number"
+              id="cAmount" class="form-input" min="0" /></div>
+          <div class="form-group"><label class="form-label">Status</label><select id="cStatus" class="form-select">
+              <option>Pending</option>
+              <option>Under Assessment</option>
+              <option>Partially Paid</option>
+              <option>Settled</option>
+              <option>Paid</option>
+              <option>Rejected</option>
+            </select></div>
+          <div class="form-group full"><label class="form-label">Evidence Photos (Mobile Inspection)</label>
+            <div class="photo-proof">
+              <div class="ico">📸</div>
+              <div style="font-weight:600;font-size:13px">Capture incident photos - GPS + timestamp</div>
+              <div style="font-size:11px">Completion evidence linked to maintenance work order if applicable</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelClaim">Cancel</button><button class="btn btn-primary"
+          style="background:#7C3AED;border-color:#7C3AED" id="btnSaveClaim">Log Claim</button></div>
+    </div>
+  </div>
+
+  <!-- Coverage Gap Modal -->
+  <div class="modal-backdrop" id="coverageModalBackdrop">
+    <div class="modal" style="width:min(600px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Coverage Gap Analysis</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseCoverageModal">✕</button>
+      </div>
+      <div class="modal-body" id="coverageBody"></div>
+      <div class="modal-foot"><button class="btn" id="btnCancelCoverage">Close</button><button class="btn btn-primary"
+          id="btnExportCoverage">Export Analysis</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop">
+    <div class="modal confirm">
+      <div class="modal-head">
+        <h4 id="confirmTitle" style="margin:0">Confirm</h4>
+      </div>
+      <div class="modal-body" id="confirmBody">Are you sure?</div>
+      <div class="modal-foot"><button class="btn" id="confirmCancel">Cancel</button><button class="btn btn-danger"
+          id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/operations-insurance.js"></script>
+</body>
+
+</html>

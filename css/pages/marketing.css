@@ -1,0 +1,754 @@
+/* Marketing & Vacancies – Enterprise Kanban + Table */
+/* FIXED: Only Vacancy Pipeline container - added padding/margin for full build visibility */
+.mk-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* FIX: Added bottom padding so page content not cut off */
+  padding-bottom: 24px;
+}
+
+.pipeline-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  overflow: auto;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm)
+}
+
+.pipeline-strip::-webkit-scrollbar {
+  height: 0
+}
+
+.pipe-step {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px
+}
+
+.pipe-step b {
+  color: var(--text)
+}
+
+.pipe-arrow {
+  color: var(--border-strong);
+  font-size: 13px;
+  margin: 0 8px
+}
+
+.pipe-step.done b {
+  color: var(--blue)
+}
+
+.pipe-step.active b {
+  color: var(--text);
+  background: var(--blue-light);
+  border: 1px solid #BFDBFE;
+  padding: 2px 8px;
+  border-radius: 20px
+}
+
+/* controls */
+.mk-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm)
+}
+
+.mk-search {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+  max-width: 380px
+}
+
+.mk-search input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 12px 0 34px;
+  background: var(--surface-2);
+  outline: 0;
+  font-size: 13px
+}
+
+.mk-search input:focus {
+  background: #FFF;
+  border-color: #93C5FD;
+  box-shadow: 0 0 0 3px #EFF6FF
+}
+
+.mk-search .ico {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted)
+}
+
+.chip-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap
+}
+
+.chip {
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--muted)
+}
+
+.chip.active {
+  background: var(--text);
+  color: #FFF;
+  border-color: var(--text)
+}
+
+/* ============================================================================
+ * kanban - Vacancy Pipeline – Drag cards to move stage • Click for details
+ * FIXED: Full build visibility issue - div inside not showing complete build
+ * Added padding/margin where needed to ensure all cards and columns visible
+ * ============================================================================
+ */
+.kanban-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  /* FIX: Added margin-bottom and slight padding to prevent clipping */
+  margin-bottom: 16px;
+  padding-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.kanban-head {
+  padding: 14px 16px;
+  /* FIX: Increased from 12px 14px to 14px 16px for better spacing */
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kanban-head h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.kanban-head .right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.kanban-scroll {
+  display: flex;
+  gap: 16px;
+  /* FIX: Increased from 12px to 16px for better column separation */
+  padding: 16px 16px 20px 16px;
+  /* FIX: Increased padding, added 20px bottom so last card fully visible */
+  overflow-x: auto;
+  overflow-y: hidden;
+  align-items: flex-start;
+  min-height: 520px;
+  /* FIX: Increased from 420px to 520px to show full build */
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+.kanban-scroll::-webkit-scrollbar {
+  height: 8px
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 20px
+}
+
+.kanban-scroll::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 20px;
+}
+
+.kanban-col {
+  flex: 0 0 320px;
+  /* FIX: Increased from 300px to 320px for better card fit */
+  width: 320px;
+  background: #F8FAFC;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  /* FIX: Increased from 78vh to 80vh */
+  min-height: 420px;
+  /* FIX: Added min-height to ensure column always visible */
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.col-head {
+  padding: 12px 14px;
+  /* FIX: Increased from 10px 12px to 12px 14px */
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FFF;
+  border-radius: 10px 10px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 1
+}
+
+.col-head .title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px
+}
+
+.col-head .title i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block
+}
+
+.col-head .count {
+  min-width: 26px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 20px;
+  background: #0F172A;
+  color: #FFF;
+  padding: 0 6px
+}
+
+.col-head .count.vacant {
+  background: #64748B
+}
+
+.col-head .count.published {
+  background: #2563EB
+}
+
+.col-head .count.enquiry {
+  background: #D97706
+}
+
+.col-head .count.viewing {
+  background: #7C3AED
+}
+
+.col-head .count.application {
+  background: #0E7490
+}
+
+.col-head .count.kyc {
+  background: #DC2626
+}
+
+.col-head .count.approved {
+  background: #16A34A
+}
+
+.col-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  /* FIX: Increased from 8px to 12px for inner spacing */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* FIX: Increased from 8px to 10px for card separation */
+  scrollbar-width: thin;
+  min-height: 300px;
+  /* FIX: Added min-height to ensure empty state visible */
+  padding-bottom: 16px;
+  /* FIX: Added extra bottom padding so last card not cut off */
+}
+
+.col-body::-webkit-scrollbar {
+  width: 5px
+}
+
+.col-body.drag-over {
+  background: #EFF6FF;
+  border: 1px dashed #93C5FD;
+  border-radius: 0 0 10px 10px
+}
+
+/* card */
+.v-card {
+  background: #FFF;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 12px;
+  /* FIX: Increased from 10px 11px to 12px 12px */
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+  cursor: grab;
+  transition: .12s;
+  position: relative;
+  margin-bottom: 2px;
+  /* FIX: Added small margin to prevent cards touching */
+}
+
+.v-card:hover {
+  border-color: #93C5FD;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .08);
+  transform: translateY(-1px)
+}
+
+.v-card.dragging {
+  opacity: .5;
+  transform: rotate(2deg) scale(.98)
+}
+
+.v-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px
+}
+
+.v-card-title {
+  font-weight: 700;
+  font-size: 12.5px;
+  line-height: 1.25;
+  color: var(--text)
+}
+
+.v-card-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px
+}
+
+.v-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px
+}
+
+.meta-tag {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-weight: 600;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px
+}
+
+.meta-tag.rent {
+  color: #0F172A;
+  background: #F1F5F9;
+  border-color: #E2E8F0
+}
+
+.meta-tag.area {
+  color: #475569
+}
+
+.meta-tag.days {
+  color: #D97706;
+  background: #FFFBEB;
+  border-color: #FDE68A
+}
+
+.meta-tag.views {
+  color: #2563EB;
+  background: #EFF6FF;
+  border-color: #BFDBFE
+}
+
+.lead-row {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F8FAFC;
+  border: 1px solid #F1F5F9;
+  border-radius: 8px;
+  padding: 6px 8px
+}
+
+.lead-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0F172A;
+  color: #FFF;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700
+}
+
+.lead-info {
+  flex: 1;
+  min-width: 0
+}
+
+.lead-info b {
+  font-size: 11.5px;
+  display: block;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis
+}
+
+.lead-info span {
+  font-size: 10.5px;
+  color: var(--muted)
+}
+
+.v-card-foot {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center
+}
+
+.agent {
+  font-size: 10.5px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px
+}
+
+.progress-mini {
+  height: 3px;
+  background: #E2E8F0;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 8px
+}
+
+.progress-mini i {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+  border-radius: 20px
+}
+
+/* vacancy table */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-top: 8px;
+  /* FIX: Added margin-top for separation from kanban */
+}
+
+.t-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFF
+}
+
+.t-head h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700
+}
+
+.t-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap
+}
+
+.t-filters .select,
+.t-filters .input {
+  height: 32px;
+  font-size: 12.5px
+}
+
+.t-actions .btn {
+  height: 32px
+}
+
+/* modal for publish */
+.publish-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px
+}
+
+.f-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px
+}
+
+.f-label {
+  font-size: 12px;
+  font-weight: 600
+}
+
+.f-input {
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #FFF;
+  outline: 0
+}
+
+.f-input:focus {
+  border-color: #93C5FD;
+  box-shadow: 0 0 0 3px #EFF6FF
+}
+
+.f-textarea {
+  min-height: 80px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+  outline: 0
+}
+
+.drawer-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid #F1F5F9
+}
+
+.drawer-section:last-child {
+  border: 0
+}
+
+.drawer-kvs {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+  font-size: 12.5px
+}
+
+.drawer-kvs dt {
+  color: var(--muted);
+  font-weight: 500
+}
+
+.drawer-kvs dd {
+  margin: 0;
+  font-weight: 600
+}
+
+.timeline {
+  position: relative;
+  padding-left: 22px;
+  margin-top: 8px
+}
+
+.timeline:before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--border)
+}
+
+.tl {
+  position: relative;
+  padding: 0 0 14px
+}
+
+.tl:before {
+  content: "";
+  position: absolute;
+  left: -19px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FFF;
+  border: 2px solid var(--border)
+}
+
+.tl.done:before {
+  background: var(--blue);
+  border-color: var(--blue)
+}
+
+.tl.active:before {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px #DCFCE7
+}
+
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  background: #FFF;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  margin: 8px;
+}
+
+.empty .big {
+  font-size: 24px
+}
+
+.empty b {
+  color: var(--text);
+  display: block;
+  margin-top: 6px
+}
+
+/* responsive */
+@media(max-width:1440px) {
+  .kanban-col {
+    flex: 0 0 300px;
+    width: 300px
+  }
+}
+
+@media(max-width:1280px) {
+  .kanban-col {
+    flex: 0 0 280px;
+    width: 280px
+  }
+
+  .kanban-scroll {
+    min-height: 480px;
+    /* FIX: Adjusted for this breakpoint */
+  }
+}
+
+@media(max-width:1024px) {
+  .pipeline-strip {
+    padding: 8px 10px
+  }
+
+  .mk-controls {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .mk-search {
+    max-width: none
+  }
+
+  .kanban-scroll {
+    gap: 12px;
+    padding: 12px 12px 16px 12px;
+    /* FIX: Kept bottom padding */
+    min-height: 480px;
+  }
+
+  .kanban-col {
+    flex: 0 0 86vw;
+    width: 86vw;
+    max-height: 70vh;
+    min-height: 400px;
+  }
+}
+
+@media(max-width:768px) {
+  .publish-grid {
+    grid-template-columns: 1fr
+  }
+
+  .t-head {
+    flex-direction: column;
+    align-items: stretch
+  }
+
+  .t-filters {
+    width: 100%
+  }
+
+  .t-filters .select {
+    flex: 1
+  }
+
+  .kanban-col {
+    flex: 0 0 84vw;
+    width: 84vw
+  }
+
+  .kanban-head {
+    padding: 12px;
+  }
+}
+
+@media(max-width:480px) {
+  .kanban-col {
+    flex: 0 0 88vw;
+    width: 88vw
+  }
+
+  .v-card {
+    padding: 10px 10px
+  }
+
+  .mk-page {
+    padding-bottom: 16px;
+  }
+}
+
+@media(max-width:390px) {
+  .col-head .title {
+    font-size: 10px
+  }
+
+  .pipe-step {
+    font-size: 10px
+  }
+}

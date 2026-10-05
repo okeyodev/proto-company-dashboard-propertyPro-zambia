@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Billing & Invoices — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/finance.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="finance-page">
+          <div class="page-head">
+            <div>
+              <h1>Billing & Invoices <span class="badge-new">ZRA SMART INVOICE</span></h1>
+              <p>Generate monthly rent roll, reconcile ZRA Smart Invoice numbers, track collections. Integrated with
+                Tenant ledger, Payments (Bank & Mobile Money), and Arrears aging. Compliant with Zambia Revenue
+                Authority E-Invoicing.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportCSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
+              <button class="btn btn-primary" id="btnBatchBilling">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Generate Batch Billing
+              </button>
+            </div>
+          </div>
+
+          <div class="workflow-strip" id="workflowStrip">
+            <div class="workflow-step done">Draft</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step active">Issued</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">ZRA Submitted</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Validated</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Paid</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step overdue">Overdue</div>
+          </div>
+
+          <div class="kpi-grid finance" id="kpiGrid"></div>
+
+          <div class="filters-bar">
+            <div class="filters-left">
+              <div class="filter-group">
+                <label>Search</label>
+                <div class="search-wrap">
+                  <span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.3-4.3" />
+                    </svg></span>
+                  <input id="searchInputLocal" class="search-input"
+                    placeholder="Search tenant, invoice ID, ZRA SI..." />
+                </div>
+              </div>
+              <div class="filter-group"><label>Property</label><select id="filterProperty" class="filter-select">
+                  <option value="">All Properties</option>
+                </select></div>
+              <div class="filter-group"><label>Invoice Type</label><select id="filterType" class="filter-select">
+                  <option value="">All Types</option>
+                  <option>Rent</option>
+                  <option>Service Charge</option>
+                  <option>Utilities</option>
+                  <option>Penalties</option>
+                  <option>VAT</option>
+                  <option>Deposit</option>
+                </select></div>
+              <div class="filter-group"><label>Status</label><select id="filterStatus" class="filter-select">
+                  <option value="">All Statuses</option>
+                  <option>Paid</option>
+                  <option>Unpaid</option>
+                  <option>Partial</option>
+                  <option>Overdue</option>
+                  <option>Draft</option>
+                </select></div>
+              <div class="filter-group"><label>ZRA Status</label><select id="filterZRA" class="filter-select">
+                  <option value="">All ZRA</option>
+                  <option>Validated</option>
+                  <option>Synced</option>
+                  <option>Pending</option>
+                  <option>Failed</option>
+                  <option>Queued</option>
+                </select></div>
+              <div class="filter-group"><label>From</label><input type="date" id="filterFrom" class="filter-select"
+                  style="min-width:140px" /></div>
+              <div class="filter-group"><label>To</label><input type="date" id="filterTo" class="filter-select"
+                  style="min-width:140px" /></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end"><button class="btn btn-sm" id="btnResetFilters">Reset
+                Filters</button></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Invoices Register • <span id="countLabel">0</span> records • Total ZMW <span id="totalLabel">0</span>
+                • Outstanding <span id="outstandingLabel" class="amount outstanding">ZMW 0</span></h3>
+              <div style="display:flex;gap:8px;align-items:center"><select id="pageSize" class="filter-select"
+                  style="height:32px;min-width:100px">
+                  <option value="25">25 / page</option>
+                  <option value="50" selected>50 / page</option>
+                  <option value="100">100 / page</option>
+                </select></div>
+            </div>
+            <div class="table-wrap">
+              <table id="invoicesTable">
+                <thead>
+                  <tr>
+                    <th>Invoice ID</th>
+                    <th>Tenant</th>
+                    <th>Property</th>
+                    <th>Type</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Amount (ZMW)</th>
+                    <th>ZRA Smart Invoice</th>
+                    <th>Payment Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="invoicesTbody">
+                  <tr>
+                    <td colspan="10" style="padding:24px;text-align:center;color:#64748B">Loading invoices...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div id="tableInfo">Showing 0 invoices</div>
+              <div style="display:flex;gap:6px"><button class="btn btn-sm" id="prevPage">Prev</button><button
+                  class="btn btn-sm" id="nextPage">Next</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <div class="drawer" id="invoiceDrawer">
+    <div class="drawer-head">
+      <div class="drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">INV-2026-0001</h2><span class="mono" id="drawerId">INV-2026-0001</span><span
+            class="pill blue" id="drawerStatus">Unpaid</span><span class="pill zra-validated"
+            id="drawerZRA">Validated</span>
+        </div>
+        <div class="meta" style="font-size:12px;color:#64748B;margin-top:6px"><span id="drawerSubtitle">Invoice details
+            • Tenant • Property</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-summary" id="drawerSummary"></div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" data-tab="lineitems">Line Items</div>
+      <div class="drawer-tab" data-tab="zra">ZRA Smart Invoice</div>
+      <div class="drawer-tab" data-tab="ledger">Ledger History</div>
+      <div class="drawer-tab" data-tab="payments">Payments</div>
+      <div class="drawer-tab" data-tab="details">Details</div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-actions" id="drawerActions">
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnPrintInvoice">Print</button><button
+          class="btn btn-sm" id="btnResyncZRA">Resync ZRA</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnSendNotice">Send Notice</button><button
+          class="btn btn-primary btn-sm" id="btnRecordPayment">Record Payment</button></div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu"></div>
+
+  <div class="modal-backdrop" id="batchModalBackdrop">
+    <div class="modal" style="width:min(720px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Generate Batch Billing</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseBatchModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Property (or All)</label><select id="batchProperty"
+              class="form-select">
+              <option value="">All Properties</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Billing Month</label><input type="month" id="batchMonth"
+              class="form-input" value="2026-10" /></div>
+          <div class="form-group"><label class="form-label">Invoice Type</label><select id="batchType"
+              class="form-select">
+              <option value="Rent">Rent</option>
+              <option value="Service Charge">Service Charge</option>
+              <option value="Utilities">Utilities</option>
+              <option value="All">All Types</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Due Day</label><select id="batchDueDay" class="form-select">
+              <option value="5">5th of next month</option>
+              <option value="15">15th of next month</option>
+              <option value="30">30 days from issue</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">VAT Applicable</label><select id="batchVAT"
+              class="form-select">
+              <option value="yes" selected>Yes - 16% VAT</option>
+              <option value="no">No - Exempt</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Auto-sync ZRA</label><select id="batchZRA"
+              class="form-select">
+              <option value="yes" selected>Yes - Queue for ZRA Smart Invoice</option>
+              <option value="no">No - Manual later</option>
+            </select></div>
+          <div class="form-group full"><label class="form-label">Notes</label><textarea id="batchNotes"
+              class="form-textarea"
+              placeholder="Batch notes visible to tenants...">Monthly rental billing - Please settle by due date to avoid penalties. ZRA Smart Invoice will be issued automatically.</textarea>
+          </div>
+        </div>
+        <div
+          style="margin-top:14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px;font-size:12.5px;color:#475569">
+          <strong style="color:#0F172A">Preview:</strong> <span id="batchPreview">Will generate invoices for selected
+            properties</span></div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelBatch">Cancel</button><button class="btn btn-primary"
+          id="btnConfirmBatch">Generate Invoices</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop">
+    <div class="modal confirm">
+      <div class="modal-head">
+        <h4 id="confirmTitle" style="margin:0">Confirm</h4>
+      </div>
+      <div class="modal-body" id="confirmBody">Are you sure?</div>
+      <div class="modal-foot"><button class="btn" id="confirmCancel">Cancel</button><button class="btn btn-danger"
+          id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/finance-billing.js"></script>
+</body>
+
+</html>

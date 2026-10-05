@@ -1,0 +1,13 @@
+
+.pr-page{max-width:1600px;margin:0 auto}.pr-header{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:18px}.pr-header h1{margin:0;font-size:26px;font-weight:800}.pr-header p{color:var(--muted);font-size:13.5px;margin-top:6px}
+.pr-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.pr-kpi{background:#FFF;border:1px solid var(--border);border-radius:10px;padding:14px 16px}.pr-kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:650}.pr-kpi .value{font-size:21px;font-weight:750;margin-top:6px}
+.dashboard-grid .card{background:#FFF;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#FFF}.card-head h3{margin:0;font-size:13px;font-weight:700}
+.card-body{padding:14px}
+.pr-table-card{background:#FFF;border:1px solid var(--border);border-radius:10px;overflow:hidden}.pr-table-wrap{overflow:auto}.pr-table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}.pr-table th{font-size:11px;text-transform:uppercase;color:var(--muted);padding:12px;border-bottom:1px solid var(--border);background:#F8FAFC;text-align:left;white-space:nowrap}.pr-table td{padding:12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:650;border:1px solid var(--border)}.pill.green{background:#F0FDF4;color:#15803D;border-color:#BBF7D0}.pill.red{background:#FEF2F2;color:#B91C1C;border-color:#FECACA}.pill.amber{background:#FFFBEB;color:#92400E;border-color:#FDE68A}
+.pr-select{height:36px;border:1px solid var(--border);border-radius:8px;padding:0 28px 0 10px;background:#FFF}
+.pr-btn{height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--border);background:#FFF;font-weight:600;cursor:pointer}.pr-btn-primary{background:#2563EB;border-color:#2563EB;color:#FFF}
+.bar-track{height:14px;background:#E2E8F0;border-radius:20px;overflow:hidden;position:relative}.bar-fill{height:100%;border-radius:20px}
+.bar-target{position:absolute;top:0;bottom:0;width:2px;background:#0F172A}

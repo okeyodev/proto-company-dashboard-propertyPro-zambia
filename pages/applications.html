@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Applications — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/applications.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="leasing-page apps">
+          <div class="page-head">
+            <div>
+              <h1>Applications</h1>
+              <p>Bridge between Marketing/Vacancies and Tenants. Manage prospective tenants through Review → KYC →
+                Committee → Decision → Tenant → Lease. Applications linked to Properties, Units, and Investment Assets.
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportApps">Export Excel</button>
+              <button class="btn btn-primary" id="btnNewApplication">+ New Application</button>
+            </div>
+          </div>
+
+          <div class="workflow-strip" id="workflowStrip">
+            <div class="workflow-step done">Application</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Review</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">KYC</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Committee</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Decision</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Tenant</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Lease</div>
+          </div>
+
+          <div class="kpi-grid apps" id="kpiGrid"></div>
+
+          <div class="filters-bar">
+            <div class="filters-left">
+              <div class="filter-group"><label>Search</label>
+                <div class="search-wrap"><input id="searchInputLocal" class="search-input"
+                    placeholder="Search applicant, ID, property..." /></div>
+              </div>
+              <div class="filter-group"><label>Property</label><select id="filterProperty" class="filter-select">
+                  <option value="">All Properties</option>
+                </select></div>
+              <div class="filter-group"><label>Status</label><select id="filterStatus" class="filter-select">
+                  <option value="">All Statuses</option>
+                  <option>Draft</option>
+                  <option>Submitted</option>
+                  <option>Under Review</option>
+                  <option>KYC Pending</option>
+                  <option>KYC Passed</option>
+                  <option>KYC Failed</option>
+                  <option>Committee Review</option>
+                  <option>Approved</option>
+                  <option>Rejected</option>
+                  <option>Withdrawn</option>
+                </select></div>
+              <div class="filter-group"><label>Type</label><select id="filterApplicantType" class="filter-select">
+                  <option value="">All Types</option>
+                  <option>Individual</option>
+                  <option>Company</option>
+                  <option>NGO</option>
+                  <option>Government</option>
+                </select></div>
+              <div class="filter-group"><label>Risk</label><select id="filterRisk" class="filter-select">
+                  <option value="">All Risk</option>
+                  <option>Low</option>
+                  <option>Medium</option>
+                  <option>High</option>
+                  <option>Critical</option>
+                </select></div>
+              <div class="filter-group"><label>Officer</label><select id="filterOfficer" class="filter-select">
+                  <option value="">All Officers</option>
+                </select></div>
+              <div class="filter-group"><label>Date</label><input type="date" id="filterDate" class="filter-select"
+                  style="min-width:140px" /></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end"><button class="btn btn-sm" id="btnResetFilters">Reset
+                Filters</button></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Applications Register • <span id="countLabel">0</span> records • Proposed Rent ZMW <span
+                  id="rentLabel">0</span></h3>
+              <div style="display:flex;gap:8px;align-items:center"><select id="pageSize" class="filter-select"
+                  style="height:32px;min-width:100px">
+                  <option value="25">25 / page</option>
+                  <option value="50" selected>50 / page</option>
+                  <option value="100">100 / page</option>
+                </select></div>
+            </div>
+            <div class="table-wrap">
+              <table id="appsTable">
+                <thead>
+                  <tr>
+                    <th>Application ID</th>
+                    <th>Applicant</th>
+                    <th>Type</th>
+                    <th>Property</th>
+                    <th>Unit</th>
+                    <th>Proposed Rent</th>
+                    <th>Submitted</th>
+                    <th>KYC</th>
+                    <th>Risk</th>
+                    <th>Status</th>
+                    <th>Officer</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="appsTbody">
+                  <tr>
+                    <td colspan="12" style="padding:24px;text-align:center;color:#64748B">Loading applications...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div id="tableInfo">Showing 0 applications</div>
+              <div style="display:flex;gap:6px"><button class="btn btn-sm" id="prevPage">Prev</button><button
+                  class="btn btn-sm" id="nextPage">Next</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <div class="drawer" id="detailDrawer">
+    <div class="drawer-head">
+      <div class="drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">APP-1001</h2><span class="mono" id="drawerId">APP-1001</span><span class="pill blue"
+            id="drawerStatus">Submitted</span>
+        </div>
+        <div class="meta" style="font-size:12px;color:#64748B;margin-top:4px"><span id="drawerSubtitle">Application
+            details</span></div>
+      </div><button class="btn btn-ghost btn-sm" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-summary" id="drawerSummary"></div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" data-tab="overview">Overview</div>
+      <div class="drawer-tab" data-tab="kyc">KYC</div>
+      <div class="drawer-tab" data-tab="committee">Committee</div>
+      <div class="drawer-tab" data-tab="documents">Documents</div>
+      <div class="drawer-tab" data-tab="activity">Activity</div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-actions" id="drawerActions"></div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu"></div>
+
+  <div class="modal-backdrop" id="appModalBackdrop">
+    <div class="modal" style="width:min(860px,100%)">
+      <div class="modal-head">
+        <h3 id="appModalTitle" style="margin:0;font-size:16px;font-weight:800">New Application</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseAppModal">✕</button>
+      </div>
+      <div class="modal-body" id="appModalBody"></div>
+      <div class="modal-foot"
+        style="padding:12px 18px;border-top:1px solid #E2E8F0;display:flex;justify-content:flex-end;gap:8px;background:#F8FAFC">
+        <button class="btn" id="btnCancelAppModal">Cancel</button><button class="btn btn-primary" id="btnSaveApp">Save
+          Application</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop">
+    <div class="modal confirm" style="width:min(420px,100%)">
+      <div class="modal-head">
+        <h4 id="confirmTitle" style="margin:0">Confirm</h4>
+      </div>
+      <div class="modal-body" id="confirmBody">Are you sure?</div>
+      <div class="modal-foot"
+        style="padding:12px 16px;border-top:1px solid #E2E8F0;display:flex;justify-content:flex-end;gap:8px;background:#F8FAFC">
+        <button class="btn" id="confirmCancel">Cancel</button><button class="btn btn-danger"
+          id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/applications.js"></script>
+</body>
+
+</html>

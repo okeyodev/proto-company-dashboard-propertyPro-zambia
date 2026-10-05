@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appraisals & Research — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/investment-appraisals.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <main class="content">
+        <div class="pr-page">
+          <div class="pr-header">
+            <div>
+              <h1>Appraisals & Research</h1>
+              <p>Company profile • Financial statements • Ratios • DCF / NPV / IRR • Scenarios</p>
+            </div>
+            <div class="pr-header-actions"><select id="appraisalSelect" class="pr-select"
+                style="height:38px;min-width:260px"></select><button class="pr-btn pr-btn-primary"
+                id="btnNewAppraisal">New Appraisal</button></div>
+          </div>
+
+          <div class="grid" style="display:grid;grid-template-columns:320px 1fr;gap:14px">
+            <div class="card"
+              style="background:#FFF;border:1px solid var(--border);border-radius:10px;padding:0;overflow:hidden;align-self:start">
+              <div style="padding:14px;border-bottom:1px solid var(--border)">
+                <h3 style="margin:0;font-size:13px">Deal Context</h3>
+                <div id="dealContext" style="margin-top:8px;font-size:12px;color:var(--muted)"></div>
+              </div>
+              <div style="padding:14px">
+                <h4 style="margin:0 0 8px;font-size:12px">Company Profile</h4>
+                <div id="companyProfile" style="font-size:13px;line-height:1.6"></div>
+              </div>
+              <div style="padding:14px;border-top:1px solid var(--border)">
+                <h4 style="margin:0 0 8px;font-size:12px">Analyst</h4>
+                <div id="analystInfo" style="font-size:12px"></div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="card"
+                style="background:#FFF;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                <div class="card-head">
+                  <h3>Financial Statements (ZMW)</h3>
+                  <div style="display:flex;gap:8px"><button class="pr-btn" id="btnEditFinancials">Edit</button><button
+                      class="pr-btn pr-btn-primary" id="btnSaveFinancials">Save</button></div>
+                </div>
+                <div class="card-body" id="financialsEditor"
+                  style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px"></div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                <div class="card"
+                  style="background:#FFF;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                  <div class="card-head">
+                    <h3>Liquidity & Leverage</h3>
+                  </div>
+                  <div class="card-body" id="liquidityRatios"></div>
+                </div>
+                <div class="card"
+                  style="background:#FFF;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                  <div class="card-head">
+                    <h3>Profitability & Efficiency</h3>
+                  </div>
+                  <div class="card-body" id="profitRatios"></div>
+                </div>
+              </div>
+
+              <div class="card"
+                style="background:#FFF;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                <div class="card-head">
+                  <h3>Valuation Multiples</h3>
+                </div>
+                <div class="card-body" id="valuationRatios"></div>
+              </div>
+
+              <div class="card"
+                style="background:#FFF;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                <div class="card-head">
+                  <h3>DCF / NPV / IRR Calculator</h3>
+                  <div style="display:flex;gap:8px"><select id="scenarioSelect" class="pr-select">
+                      <option value="Base">Base</option>
+                      <option value="Upside">Upside</option>
+                      <option value="Downside">Downside</option>
+                    </select><button class="pr-btn pr-btn-primary" id="btnCalc">Calculate</button></div>
+                </div>
+                <div class="card-body">
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px" id="calcInputs"></div>
+                  <div id="calcResults" style="margin-top:16px"></div>
+                  <div id="sensitivityTable" style="margin-top:16px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="globalSearchBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex:1"><svg width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="#64748B" stroke-width="1.8">
+            <circle cx="11" cy="11" r="6" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg><input id="globalSearchInput" placeholder="Search..." style="flex:1;border:0;outline:0;font-size:14px"
+            autofocus /></div><button class="btn btn-ghost"
+          onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+      </div>
+      <div class="modal-body">
+        <div id="globalSearchResults"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/common.js"></script>
+  <script src="../js/investment-calculations.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/investment-appraisals.js"></script>
+  <script>Layout.init({ currentPage: 'investment-appraisals' });</script>
+</body>
+
+</html>

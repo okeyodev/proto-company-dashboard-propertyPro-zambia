@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Valuations & Reporting — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/operations.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="ops-page">
+          <div class="page-head">
+            <div>
+              <h1>Valuations & Reporting <span class="badge-new">ToR 8.9 • IAS 40 / IFRS 13</span></h1>
+              <p>Open market valuations, DCF & Income Approach, fair value reporting, IAS 40 classification, IFRS 13
+                Level 3 disclosures, YoY unrealized gains to Investment module, direct link to Investment Assets
+                register.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportCSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
+              <button class="btn" id="btnExportPDF">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                Valuation Report PDF
+              </button>
+              <button class="btn btn-primary" id="btnNewValuation">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                New Valuation
+              </button>
+            </div>
+          </div>
+
+          <div class="workflow-strip" id="workflowStrip">
+            <div class="workflow-step done">Draft Valuation</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">External Valuer Review</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step active">CFO Approval</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Investment Committee</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Fair Value Booked • IAS 40</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">IFRS 13 Disclosed</div>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <span class="pill blue" id="valuerCount">0 Valuers</span>
+              <span class="pill green" id="complianceFlag">IAS 40 / IFRS 13 Compliant</span>
+            </div>
+          </div>
+
+          <div class="kpi-grid operations" id="kpiGrid"></div>
+
+          <div class="filters-bar">
+            <div class="filters-left">
+              <div class="filter-group">
+                <label>Search</label>
+                <div class="search-wrap">
+                  <span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.3-4.3" />
+                    </svg></span>
+                  <input id="searchInputLocal" class="search-input"
+                    placeholder="Property ID, name, valuer, method..." />
+                </div>
+              </div>
+              <div class="filter-group"><label>Property</label><select id="filterProperty" class="filter-select">
+                  <option value="">All Properties</option>
+                </select></div>
+              <div class="filter-group"><label>Valuer</label><select id="filterValuer" class="filter-select">
+                  <option value="">All Valuers</option>
+                </select></div>
+              <div class="filter-group"><label>Method</label><select id="filterMethod" class="filter-select">
+                  <option value="">All Methods</option>
+                  <option>Income Approach</option>
+                  <option>Discounted Cash Flow</option>
+                  <option>Market Comparison</option>
+                  <option>Cost Approach</option>
+                </select></div>
+              <div class="filter-group"><label>IAS 40 Class</label><select id="filterIAS40" class="filter-select">
+                  <option value="">All Classes</option>
+                  <option>Investment Property</option>
+                  <option>Owner-Occupied</option>
+                  <option>Held for Sale</option>
+                </select></div>
+              <div class="filter-group"><label>Valuation Date</label><input type="month" id="filterDate"
+                  class="filter-select" style="min-width:140px" /></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <button class="btn btn-sm" id="btnResetFilters">Reset Filters</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Valuation Register • <span id="countLabel">0</span> valuations • Portfolio FMV ZMW <span
+                  id="fmvLabel">0M</span> • YoY <span id="yoyLabel">+0%</span></h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="pageSize" class="filter-select" style="height:32px;min-width:100px">
+                  <option value="25">25 / page</option>
+                  <option value="50" selected>50 / page</option>
+                  <option value="100">100 / page</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="valuationsTable">
+                <thead>
+                  <tr>
+                    <th>Property ID & Name</th>
+                    <th>Valuation Date</th>
+                    <th>Approved Valuer</th>
+                    <th>Valuation Method</th>
+                    <th>Fair Value (ZMW)</th>
+                    <th>YoY Gain/Loss %</th>
+                    <th>IAS 40 Class</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="valuationsTbody">
+                  <tr>
+                    <td colspan="8" style="padding:24px;text-align:center;color:#64748B">Loading valuations...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div id="tableInfo">Showing 0 valuations</div>
+              <div style="display:flex;gap:6px"><button class="btn btn-sm" id="prevPage">Prev</button><button
+                  class="btn btn-sm" id="nextPage">Next</button></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <div class="card-head">
+              <h3>Valuation Summary by Method • IFRS 13 Level 3 Disclosure</h3>
+            </div>
+            <div style="padding:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px" id="methodSummary">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <div class="drawer" id="valuationDrawer">
+    <div class="drawer-head">
+      <div class="drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">VAL-P-001-2026</h2>
+          <span class="mono" id="drawerId">INV-P-001</span>
+          <span class="pill green" id="drawerStatus">Final</span>
+          <span class="pill blue" id="drawerIAS40">Investment Property</span>
+        </div>
+        <div class="meta" style="font-size:12px;color:#64748B;margin-top:6px"><span id="drawerSubtitle">Property •
+            Valuer • Method</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-summary" id="drawerSummary"></div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" data-tab="breakdown">Valuation Breakdown</div>
+      <div class="drawer-tab" data-tab="trend">Historic Trend</div>
+      <div class="drawer-tab" data-tab="compliance">IAS 40 / IFRS 13</div>
+      <div class="drawer-tab" data-tab="link">Investment Link</div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-actions" id="drawerActions">
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnViewReport">View Report PDF</button><button
+          class="btn btn-sm" id="btnViewComparables">Comparables</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnEditValuation">Edit</button><button
+          class="btn btn-primary btn-sm" id="btnViewInvestmentAsset">View Investment Asset →</button></div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu"></div>
+
+  <!-- New Valuation Modal -->
+  <div class="modal-backdrop" id="valuationModalBackdrop">
+    <div class="modal" style="width:min(780px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800" id="valuationModalTitle">New Property Valuation</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseValuationModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Property *</label><select id="vProperty" class="form-select"
+              required>
+              <option value="">Select Property</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Valuation Date *</label><input type="date" id="vDate"
+              class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Approved Valuer *</label><select id="vValuer"
+              class="form-select">
+              <option>Knight Frank Zambia</option>
+              <option>Pam Golding Valuation</option>
+              <option>Hyspek Valuation</option>
+              <option>GVA Zambia</option>
+              <option>Other - RICS Registered</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Valuation Method *</label><select id="vMethod"
+              class="form-select">
+              <option>Income Approach</option>
+              <option>Discounted Cash Flow</option>
+              <option>Market Comparison</option>
+              <option>Cost Approach</option>
+              <option>Replacement Cost</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Market Value / Fair Value (ZMW) *</label><input
+              type="number" id="vMarket" class="form-input" placeholder="e.g. 86000000" min="0" /></div>
+          <div class="form-group"><label class="form-label">Previous Value (ZMW)</label><input type="number"
+              id="vPrevious" class="form-input" placeholder="For YoY calc" min="0" /></div>
+          <div class="form-group"><label class="form-label">Forced Sale Value (ZMW)</label><input type="number"
+              id="vForced" class="form-input" placeholder="70% of MV" /></div>
+          <div class="form-group"><label class="form-label">Insurance Value (ZMW)</label><input type="number"
+              id="vInsurance" class="form-input" placeholder="110% of MV" /></div>
+          <div class="form-group"><label class="form-label">Net Yield %</label><input type="number" id="vYield"
+              class="form-input" step="0.1" placeholder="e.g. 8.5" /></div>
+          <div class="form-group"><label class="form-label">IAS 40 Class *</label><select id="vIAS40"
+              class="form-select">
+              <option>Investment Property</option>
+              <option>Owner-Occupied</option>
+              <option>Held for Sale</option>
+              <option>Inventory</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">IFRS 13 Level</label><select id="vIFRS13"
+              class="form-select">
+              <option>Level 3</option>
+              <option>Level 2</option>
+              <option>Level 1</option>
+            </select></div>
+          <div class="form-group full"><label class="form-label">Valuation Assumptions (DCF / Income)</label><textarea
+              id="vAssumptions" class="form-textarea"
+              placeholder="Discount rate, exit yield, rental growth, vacancy, capex assumptions...">Discount rate 14.5%, exit yield 9.5%, rental growth 5% pa, vacancy 8%, collection loss 2%, capex ZMW 450k pa.</textarea>
+          </div>
+          <div class="form-group full"><label class="form-label">Valuation Report Upload (DMS)</label>
+            <div class="photo-proof">
+              <div class="ico">📄</div>
+              <div style="font-weight:600;color:#0F172A;font-size:13px">Upload valuation report - RICS compliant • Red
+                Book</div>
+              <div style="font-size:11px">ToR 8.9 requires external valuer rotation every 3 years • IFRS 13 disclosure
+                checklist</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelValuation">Cancel</button><button class="btn btn-primary"
+          id="btnSaveValuation">Save Valuation</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop">
+    <div class="modal confirm">
+      <div class="modal-head">
+        <h4 id="confirmTitle" style="margin:0">Confirm</h4>
+      </div>
+      <div class="modal-body" id="confirmBody">Are you sure?</div>
+      <div class="modal-foot"><button class="btn" id="confirmCancel">Cancel</button><button class="btn btn-danger"
+          id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/operations-valuations.js"></script>
+</body>
+
+</html>

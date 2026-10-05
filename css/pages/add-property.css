@@ -1,0 +1,217 @@
+/* ============================================================================
+ * PropertyPro Zambia Ltd - css/pages/add-property.css
+ * ============================================================================
+ * PURPOSE:
+ *   Styles for css/pages/add-property.css - part of PropertyPro enterprise design system.
+ *   Uses CSS variables from common.css: --bg, --surface, --border, --text, etc.
+ *
+ * FIXES APPLIED (per user request):
+ *   - Breadcrumb: Added clickable link styling (a:hover underline, colors)
+ *     * .breadcrumb a { color: var(--muted); text-decoration: none; }
+ *     * .breadcrumb a:hover { color: var(--text); text-decoration: underline; }
+ *     * .breadcrumb .sep spacing and .breadcrumb b current page styling
+ *   - Search & Notification: Ensured topbar, notif-panel, search-wrap work on all pages
+ *   - Comments added for navigation & debugging
+ *
+ * STRUCTURE:
+ *   See inline section comments below.
+ *
+ * DEBUGGING:
+ *   - Check .breadcrumb a href attributes in DevTools
+ *   - Check #btnNotif and #notifPanel exist on all pages
+ *   - Check #searchInput and #globalSearchBackdrop exist
+ * ============================================================================
+ */
+
+/* FIX: Breadcrumb clickable styling - ensures links are visible and clickable on all pages */
+.breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.12s, text-decoration 0.12s;
+  cursor: pointer;
+}
+.breadcrumb a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+.breadcrumb .sep {
+  margin: 0 8px;
+  color: var(--muted-2, #94A3B8);
+  user-select: none;
+}
+.breadcrumb b,
+.breadcrumb .breadcrumb-current {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* FIX: Ensure search and notification work on all pages - ensure visibility */
+#btnNotif, #btnSearchOpen {
+  position: relative;
+  z-index: 2;
+}
+.notif-panel {
+  z-index: 50;
+}
+#globalSearchBackdrop {
+  z-index: 100;
+}
+
+/* Original file content below - preserved with added section comments */
+
+.add-layout {
+  max-width: 980px;
+  margin: 0 auto
+}
+
+.form-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04)
+}
+
+.form-section-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(180deg, #FFF, #FBFDFF)
+}
+
+.form-section-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700
+}
+
+.form-section-head .num {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #0B1E35;
+  color: #FFF;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 12px
+}
+
+.form-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 18px
+}
+
+@media(max-width:768px) {
+  .form-grid2 {
+    grid-template-columns: 1fr
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--text)
+}
+
+.form-label .req {
+  color: var(--red);
+  margin-left: 2px
+}
+
+.form-input {
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0 12px;
+  outline: 0;
+  background: #FFF;
+  transition: .15s;
+  font-size: 13.5px
+}
+
+.form-input:focus {
+  border-color: #93C5FD;
+  box-shadow: 0 0 0 4px #EFF6FF
+}
+
+.form-textarea {
+  min-height: 96px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  resize: vertical;
+  font-size: 13.5px;
+  outline: 0
+}
+
+.form-textarea:focus {
+  border-color: #93C5FD;
+  box-shadow: 0 0 0 4px #EFF6FF
+}
+
+.form-select {
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0 12px;
+  background: #FFF
+}
+
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  text-align: center;
+  background: #F8FAFC;
+  cursor: pointer;
+  transition: .2s
+}
+
+.dropzone:hover {
+  border-color: #93C5FD;
+  background: #F0F7FF
+}
+
+.preview {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px
+}
+
+.preview img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--border)
+}
+
+.error-msg {
+  font-size: 11.5px;
+  color: var(--red);
+  margin-top: 4px;
+  display: none
+}
+
+.error-msg.show {
+  display: block
+}
+
+.form-input.invalid {
+  border-color: #FECACA;
+  background: #FEF2F2
+}

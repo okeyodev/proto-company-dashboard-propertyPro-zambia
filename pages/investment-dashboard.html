@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investment Dashboard — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/investment-dashboard.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <main class="content">
+
+        <div class="inv-dash-page">
+          <div class="dash-hero">
+            <div class="dash-hero-left">
+              <h1>Investment Dashboard <span
+                  style="font-size:12px;background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8;padding:2px 8px;border-radius:20px;font-weight:700;vertical-align:middle">INSTITUTIONAL</span>
+              </h1>
+              <div class="sub">
+                <span id="fundSelectorWrap"></span>
+                <span class="meta-chip"><span class="dot"></span> Live Portfolio • <span data-today></span></span>
+                <span class="meta-chip">Base: ZMW</span>
+              </div>
+            </div>
+            <div class="dash-hero-actions">
+              <button class="btn" id="btnExportInvDash">Export Pack</button>
+              <button class="btn btn-primary" onclick="goToPage('investment-assets?assetClass=Property')">View Property
+                Assets</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid primary" id="invKpiGrid"></div>
+
+          <div class="dashboard-grid">
+            <div class="card" style="grid-column: span 7">
+              <div class="card-head">
+                <h3>Asset Allocation</h3>
+                <div class="chart-tabs" id="allocFundTabs"></div>
+              </div>
+              <div class="card-body">
+                <div id="allocationBars"></div>
+                <div class="table-wrap" style="margin-top:14px">
+                  <table id="allocationTable">
+                    <thead>
+                      <tr>
+                        <th>Asset Class</th>
+                        <th>Current %</th>
+                        <th>Target %</th>
+                        <th>Range</th>
+                        <th>Drift</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="grid-column: span 5">
+              <div class="card-head">
+                <h3>Performance</h3>
+                <div class="chart-tabs" id="perfTabs"><button class="tab active" data-period="YTD">YTD</button><button
+                    class="tab" data-period="1M">1M</button><button class="tab" data-period="3M">3M</button><button
+                    class="tab" data-period="6M">6M</button><button class="tab" data-period="1Y">1Y</button><button
+                    class="tab" data-period="3Y">3Y</button></div>
+              </div>
+              <div class="card-body">
+                <div id="perfChart" class="chart-area" style="height:260px"></div>
+                <div id="perfStats" class="stat-grid" style="margin-top:12px"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-split">
+            <div class="card">
+              <div class="card-head">
+                <h3>Investment Pipeline</h3><button class="btn" onclick="goToPage('investment-pipeline')">View
+                  Pipeline</button>
+              </div>
+              <div class="card-body" id="pipelineSummary"></div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <h3>Risk & Compliance Alerts</h3><button class="btn" onclick="goToPage('investment-risk')">View
+                  Risk</button>
+              </div>
+              <div class="card-body" id="riskAlerts"></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:14px">
+            <div class="card-head">
+              <h3>Property Investment Performance</h3>
+              <div style="display:flex;gap:8px"><span class="pill blue" id="propCount"></span><button class="btn"
+                  onclick="goToPage('investment-assets?assetClass=Property')">View Property Assets</button></div>
+            </div>
+            <div class="card-body">
+              <div class="kpi-grid secondary" id="propKpis"></div>
+              <div class="table-wrap" style="margin-top:12px">
+                <table id="propTable">
+                  <thead>
+                    <tr>
+                      <th>Property</th>
+                      <th>Value</th>
+                      <th>Rental Income</th>
+                      <th>Opex</th>
+                      <th>NOI</th>
+                      <th>Yield</th>
+                      <th>Occupancy</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="globalSearchBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8">
+            <circle cx="11" cy="11" r="6" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
+          <input id="globalSearchInput" placeholder="Search properties, investments, deals, funds..."
+            style="flex:1;border:0;outline:0;font-size:14px" autofocus />
+        </div>
+        <button class="btn btn-ghost"
+          onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+      </div>
+      <div class="modal-body">
+        <div id="globalSearchResults"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/common.js"></script>
+  <script src="../js/investment-calculations.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/investment-dashboard.js"></script>
+  <script>
+    Layout.init({ currentPage: 'investment-dashboard' });
+  </script>
+</body>
+
+</html>

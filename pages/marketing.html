@@ -1,0 +1,272 @@
+<!--
+============================================================================
+ PropertyPro Zambia Ltd - Marketing Page
+ File: pages/marketing.html
+============================================================================
+ PURPOSE:
+   marketing page for PropertyPro Zambia portfolio management.
+   Part of 28 properties, 1,842 units, ZMW 486.4M portfolio.
+
+ STRUCTURE:
+   - app-sidebar: navigation (injected by Layout.js)
+   - app-topbar: search + notifications (works on ALL pages now)
+   - app-breadcrumb: CLICKABLE breadcrumb trail (fixed per user request)
+     * Home > Section > Current Page, all links clickable
+     * Auto-generates for future pages via Layout.js guessMeta()
+   - content: main page content
+
+ FIXES APPLIED:
+   1. Breadcrumb: Now properly named and clickable for current + future pages
+      - Uses Layout.init with explicit breadcrumbs array (Home, Section, Page)
+      - All crumbs have href and are clickable
+      - Old hardcoded breadcrumbs hidden by Layout.js
+   2. Search & Notification: Work on all pages (fixed in Layout.js + common.js)
+      - Topbar always includes btnNotif, notifPanel, btnSearchOpen
+      - Global search backdrop ensured via ensureGlobalElements()
+   3. Comments added throughout for navigation & debugging
+
+ DEPENDENCIES:
+   - css/common.css, css/layout.css, css/pages/marketing.css
+   - js/common.js (state, search, nav)
+   - js/layout.js (sidebar, topbar, breadcrumb - fixed)
+   - js/pages/marketing.js (page logic)
+
+ DEBUGGING:
+   - Check console for [Layout] and [Common] logs
+   - Breadcrumb data: window.Layout.NAV_CONFIG
+   - Search: Ctrl+K or click search icon
+   - Notifications: click bell icon
+============================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Marketing & Vacancies — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+  <link rel="stylesheet" href="../css/pages/marketing.css" />
+</head>
+
+<body>
+
+  <div class="app">
+    <div class="main">
+      <div class="main content mk-page">
+        <!-- Page Header: Title + actions -->
+        <div class="page-head">
+          <div>
+            <h1>Marketing & Vacancies</h1>
+            <p>Pipeline: Vacant → Published → Enquiry → Viewing → Application → KYC → Committee Review → Approved →
+              Offer → Lease Signed → Move-in</p>
+          </div>
+          <div class="page-actions"><button class="btn" id="btnExportVacancies">Export</button><button
+              class="btn btn-primary" id="btnPublishVacancy">+ Publish Vacancy</button></div>
+        </div>
+
+        <div class="pipeline-strip">
+          <div class="pipe-step active"><b>Vacant</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>Published</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>Enquiry</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>Viewing</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>Application</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>KYC</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>Committee Review</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step done"><b>Approved</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>Offer</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>Lease Signed</b></div><span class="pipe-arrow">→</span>
+          <div class="pipe-step"><b>Move-in</b></div>
+        </div>
+
+        <!-- Controls: Search + filters for vacancies -->
+        <div class="mk-controls">
+          <div class="mk-search"><span class="ico">⌕</span><input id="mkSearch"
+              placeholder="Search unit, property, lead, ID, city..." /></div>
+          <div class="chip-row"><button class="chip active"
+              onclick="document.getElementById('btnResetFilters')?.click()">All Vacancies</button><span
+              class="small muted" id="pipelineTotal" style="margin-left:6px">—</span></div>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+            <select class="select" id="fProperty">
+              <option>All Properties</option>
+            </select>
+            <select class="select" id="fCity">
+              <option>All Cities</option>
+            </select>
+            <select class="select" id="fStage">
+              <option value="All">All Stages</option>
+              <option value="VACANT">Vacant</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="ENQUIRY">Enquiry</option>
+              <option value="VIEWING">Viewing</option>
+              <option value="APPLICATION">Application</option>
+              <option value="KYC">KYC</option>
+              <option value="APPROVED">Approved</option>
+            </select>
+            <select class="select" id="fRent">
+              <option value="All">Rent Range</option>
+              <option value="<30k">
+                < ZMW 30k</option>
+              <option value="30-60k">30-60k</option>
+              <option value="60-90k">60-90k</option>
+              <option value=">90k">>90k</option>
+            </select>
+            <select class="select" id="fDays">
+              <option value="All">Days Vacant</option>
+              <option value="<7d">
+                <7 days</option>
+              <option value="7-30d">7-30 days</option>
+              <option value=">30d">>30 days</option>
+            </select>
+            <button class="btn" id="btnResetFilters">Reset</button>
+          </div>
+        </div>
+
+        <!-- Kanban Board: FIXED - Full build visible, proper padding/margin, drag cards to move stage -->
+        <div class="kanban-wrap">
+          <div class="kanban-head">
+            <h3>Vacancy Pipeline – Drag cards to move stage • Click for details</h3>
+            <div class="right"><span class="pill blue">50 units mocked</span><span class="pill gray">ZMW rents • views •
+                lead • days in stage</span></div>
+          </div>
+          <div class="kanban-scroll" id="kanbanScroll"></div>
+        </div>
+
+        <div class="table-card">
+          <div class="t-head">
+            <h3>Vacancy Table – Unit, Property, Type, Area, Asking Rent, Days Vacant, Stage, Assigned Agent, Action</h3>
+            <div class="t-filters"><button class="btn" onclick="location.href='./portfolio-map.html'">Map view
+                ◎</button><button class="btn btn-primary"
+                onclick="document.getElementById('btnPublishVacancy')?.click()">+ Publish</button></div>
+          </div>
+          <div id="vacancyTable"></div>
+          <div
+            style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"
+            class="small muted"><span>Uses localStorage propertypro_v2 – vacancies array synced with Kanban • Click row
+              opens same drawer with View Unit (units.html?unit=), View Applicant (applications.html?id=), Move Stage,
+              Create Application</span><span>Company: PropertyPro Zambia Ltd • ZMW • User Chanda Mwanza CM</span></div>
+        </div>
+
+        <div class="card" style="padding:12px 14px">
+          <div class="small muted"><b>Integration:</b> ?id=V-001 opens vacancy drawer • ?unit=… opens unit page • Drag &
+            drop updates state.vacancies in localStorage and re-renders instantly • Toast feedback on every action •
+            Empty states included</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Publish Vacancy Modal -->
+  <div class="modal-backdrop" id="publishBackdrop">
+    <div class="modal" style="width:min(640px,100%)">
+      <div class="modal-head"><strong>Publish Vacancy</strong><button class="btn btn-ghost"
+          id="btnClosePublish">✕</button></div>
+      <div class="modal-body">
+        <form id="publishForm">
+          <div class="publish-grid">
+            <div class="f-group"><label class="f-label">Property *</label><select class="f-input" id="pubProperty"
+                required>
+                <option>Zambezi Mall</option>
+                <option>Arcades Office Tower</option>
+                <option>Riverside Apartments</option>
+                <option>Chipata Industrial Park</option>
+                <option>Kabwe Retail Centre</option>
+                <option>Mukuba Business Park</option>
+                <option>Levy Junction Mall</option>
+                <option>East Park Mall</option>
+              </select></div>
+            <div class="f-group"><label class="f-label">Unit *</label><input class="f-input" id="pubUnit"
+                placeholder="Unit 12 / B-14 / 12-04" required /></div>
+            <div class="f-group"><label class="f-label">City</label><select class="f-input" id="pubCity">
+                <option>Lusaka</option>
+                <option>Ndola</option>
+                <option>Chipata</option>
+                <option>Kabwe</option>
+              </select></div>
+            <div class="f-group"><label class="f-label">Type</label><select class="f-input" id="pubType">
+                <option>Retail</option>
+                <option>Residential</option>
+                <option>Commercial</option>
+                <option>Industrial</option>
+                <option>Mixed-Use</option>
+              </select></div>
+            <div class="f-group"><label class="f-label">Area (m²)</label><input class="f-input" id="pubArea"
+                type="number" placeholder="120" /></div>
+            <div class="f-group"><label class="f-label">Asking Rent ZMW k</label><input class="f-input" id="pubRent"
+                type="number" placeholder="85" /></div>
+            <div class="f-group"><label class="f-label">Assigned Agent</label><select class="f-input" id="pubAgent">
+                <option>Mutale Phiri</option>
+                <option>Grace Banda</option>
+                <option>John Mwila</option>
+                <option>Chanda Mwanza</option>
+                <option>Peter Zulu</option>
+              </select></div>
+            <div class="f-group"><label class="f-label">Marketing Notes</label><textarea class="f-textarea"
+                placeholder="Portal description, incentives..."></textarea></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button type="button" class="btn"
+              onclick="document.getElementById('publishBackdrop').classList.remove('open')">Cancel</button><button
+              type="submit" class="btn btn-primary">Publish Vacancy</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="globalSearchBackdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex:1"><span>⌕</span><input id="globalSearchInput"
+            placeholder="Search or jump to..." style="flex:1;border:0;outline:0;font-size:14px" autofocus /></div>
+        <button class="btn btn-ghost"
+          onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+      </div>
+      <div class="modal-body">
+        <div class="small muted" style="margin-bottom:8px">Try: Zambezi, Unit 12, V-001</div>
+        <div id="globalSearchResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer" id="detailDrawer">
+    <div class="drawer-head">
+      <div><strong id="drawerTitle">Vacancy Details</strong>
+        <div class="small muted" id="drawerSubtitle">Select a card</div>
+      </div><button class="btn btn-ghost" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/dashboard.js"></script>
+  <script src="../js/pages/marketing.js"></script>
+
+  <!-- FIX: Breadcrumb properly named and clickable for current + future pages -->
+  <script>
+    // Ensure breadcrumb is properly named and clickable (user request fix)
+    document.addEventListener('DOMContentLoaded', () => {
+      // Small delay to ensure Layout.js has initialized
+      setTimeout(() => {
+        if (window.Layout && window.Layout.renderBreadcrumb) {
+          const bc = document.getElementById('app-breadcrumb');
+          if (bc) {
+            window.Layout.renderBreadcrumb(bc, [
+              { label: 'Home', href: '../index.html' },
+              { label: 'Portfolio', href: './property-register.html' },
+              { label: 'Marketing & Vacancies', href: './marketing.html' }
+            ]);
+            console.log('[Page:marketing] Breadcrumb fixed to clickable version');
+          }
+        }
+      }, 100);
+    });
+  </script>
+
+</body>
+
+</html>

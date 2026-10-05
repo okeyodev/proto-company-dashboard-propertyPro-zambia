@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arrears Management — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/finance.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="finance-page">
+          <div class="page-head">
+            <div>
+              <h1>Arrears Management <span class="badge-new">ToR 8.5</span></h1>
+              <p>Dynamic aging from <code>state.invoices</code> • Auto-calculated buckets 0-30 / 31-60 / 61-90 / 90+
+                days • Demand notices (SMS/Email mock), Payment Plans, and Legal Handover Packs for litigation.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportCSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
+              <button class="btn" id="btnBulkDemand">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Bulk Demand Notices
+              </button>
+              <button class="btn btn-primary" id="btnLegalQueue">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <path d="M14 2v6h6" />
+                  <path d="M10 13H8M16 13h-2M10 17H8M16 17h-2" />
+                </svg>
+                Legal Escalations
+              </button>
+            </div>
+          </div>
+
+          <div class="workflow-strip" id="workflowStrip">
+            <div class="workflow-step done">Current 0-30</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step active">31-60 Demand</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">61-90 Final Notice</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step overdue">90+ Legal</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step overdue">Litigation / Handover Pack</div>
+          </div>
+
+          <div class="kpi-grid finance" id="kpiGrid"></div>
+
+          <div class="filters-bar">
+            <div class="filters-left">
+              <div class="filter-group">
+                <label>Search</label>
+                <div class="search-wrap">
+                  <span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.3-4.3" />
+                    </svg></span>
+                  <input id="searchInputLocal" class="search-input" placeholder="Search tenant, property, unit..." />
+                </div>
+              </div>
+              <div class="filter-group"><label>Property</label><select id="filterProperty" class="filter-select">
+                  <option value="">All Properties</option>
+                </select></div>
+              <div class="filter-group"><label>Risk Score</label>
+                <select id="filterRisk" class="filter-select">
+                  <option value="">All Risk</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </div>
+              <div class="filter-group"><label>Escalation Stage</label>
+                <select id="filterStage" class="filter-select">
+                  <option value="">All Stages</option>
+                  <option value="Reminder">Reminder 0-30</option>
+                  <option value="Demand Letter">Demand 31-60</option>
+                  <option value="Final Notice">Final 61-90</option>
+                  <option value="Legal Notice">Legal 90+</option>
+                  <option value="Litigation">Litigation</option>
+                  <option value="Payment Plan">Payment Plan</option>
+                </select>
+              </div>
+              <div class="filter-group"><label>Min Due (ZMW)</label><input type="number" id="filterMinDue"
+                  class="filter-select" placeholder="e.g. 50000" style="min-width:140px" /></div>
+              <div class="filter-group"><label>Aging From</label><input type="date" id="filterFrom"
+                  class="filter-select" style="min-width:140px" /></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <button class="btn btn-sm" id="btnResetFilters">Reset Filters</button>
+              <button class="btn btn-sm" id="btnRecalc">Recalc Buckets</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Arrears Register • <span id="countLabel">0</span> tenants • Total Due ZMW <span
+                  id="totalLabel">0</span> • 90+ Days <span id="criticalLabel" style="color:#DC2626;font-weight:800">ZMW
+                  0</span></h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="pageSize" class="filter-select" style="height:32px;min-width:100px">
+                  <option value="25">25 / page</option>
+                  <option value="50" selected>50 / page</option>
+                  <option value="100">100 / page</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="arrearsTable">
+                <thead>
+                  <tr>
+                    <th>Tenant</th>
+                    <th>Property</th>
+                    <th>Total Due</th>
+                    <th>Current 0-30</th>
+                    <th>31-60 Days</th>
+                    <th>61-90 Days</th>
+                    <th>90+ Days</th>
+                    <th>Escalation Stage</th>
+                    <th>Risk Score</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="arrearsTbody">
+                  <tr>
+                    <td colspan="10" style="padding:24px;text-align:center;color:#64748B">Calculating aging from
+                      state.invoices...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div id="tableInfo">Showing 0 tenants</div>
+              <div style="display:flex;gap:6px"><button class="btn btn-sm" id="prevPage">Prev</button><button
+                  class="btn btn-sm" id="nextPage">Next</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <!-- Arrears Detail Drawer -->
+  <div class="drawer" id="arrearsDrawer">
+    <div class="drawer-head">
+      <div class="drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">Tenant Arrears</h2><span class="mono" id="drawerId">T-1042</span><span class="pill red"
+            id="drawerRisk">Critical</span><span class="pill amber" id="drawerStage">Legal Notice</span>
+        </div>
+        <div class="meta" style="font-size:12px;color:#64748B;margin-top:6px"><span id="drawerSubtitle">Aging breakdown
+            • Invoices • Notices • Payment Plan</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-summary" id="drawerSummary"></div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" data-tab="buckets">Aged Buckets</div>
+      <div class="drawer-tab" data-tab="invoices">Open Invoices</div>
+      <div class="drawer-tab" data-tab="notices">Notices & Activity</div>
+      <div class="drawer-tab" data-tab="plan">Payment Plan</div>
+      <div class="drawer-tab" data-tab="legal">Legal Handover</div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-actions" id="drawerActions">
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnPrintArrears">Print Statement</button><button
+          class="btn btn-sm" id="btnViewTenant">View Tenant</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnDemandNotice">Demand Notice</button><button
+          class="btn btn-sm" id="btnCreatePlan">Payment Plan</button><button class="btn btn-primary btn-sm"
+          id="btnLegalPack">Legal Pack</button></div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu"></div>
+
+  <!-- Demand Notice Modal -->
+  <div class="modal-backdrop" id="demandModalBackdrop">
+    <div class="modal" style="width:min(620px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Trigger Demand Notice</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseDemandModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="demandPreview"
+          style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px;margin-bottom:12px;font-size:12.5px;color:#92400E">
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Channel</label><select id="demandChannel"
+              class="form-select">
+              <option value="SMS & Email">SMS & Email</option>
+              <option value="SMS">SMS Only</option>
+              <option value="Email">Email Only</option>
+              <option value="Physical Letter">Physical Letter</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Template</label><select id="demandTemplate"
+              class="form-select">
+              <option value="Demand Letter">Demand Letter (31-60)</option>
+              <option value="Final Notice">Final Notice (61-90)</option>
+              <option value="Legal Notice">Legal Notice (90+)</option>
+              <option value="Reminder">Friendly Reminder (0-30)</option>
+            </select></div>
+          <div class="form-group full"><label class="form-label">Message Preview (editable)</label><textarea
+              id="demandMessage" class="form-textarea" style="min-height:120px"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelDemand">Cancel</button><button class="btn btn-primary"
+          id="btnConfirmDemand">Send Notice (Mock)</button></div>
+    </div>
+  </div>
+
+  <!-- Create Payment Plan Modal -->
+  <div class="modal-backdrop" id="planModalBackdrop">
+    <div class="modal" style="width:min(680px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Create Payment Plan</h3><button class="btn btn-ghost btn-sm"
+          id="btnClosePlanModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="planSummary"
+          style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;margin-bottom:12px;font-size:12.5px">
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Total Due (ZMW)</label><input type="number" id="planTotal"
+              class="form-input" readonly style="background:#F8FAFC;font-weight:700" /></div>
+          <div class="form-group"><label class="form-label">Installments *</label><select id="planInstallments"
+              class="form-select">
+              <option value="2">2 months</option>
+              <option value="3" selected>3 months</option>
+              <option value="4">4 months</option>
+              <option value="6">6 months</option>
+              <option value="12">12 months</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Monthly Amount</label><input type="number" id="planMonthly"
+              class="form-input" readonly style="background:#F8FAFC" /></div>
+          <div class="form-group"><label class="form-label">Start Date *</label><input type="date" id="planStart"
+              class="form-input" /></div>
+          <div class="form-group full"><label class="form-label">Terms & Conditions</label><textarea id="planTerms"
+              class="form-textarea">Tenant agrees to pay monthly installments on or before 5th of each month. Failure to pay 2 consecutive installments voids plan and triggers legal escalation. Interest 2% per month on late amounts. Plan to be witnessed by Property Manager.</textarea>
+          </div>
+        </div>
+        <div id="planSchedule" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelPlan">Cancel</button><button class="btn btn-primary"
+          id="btnConfirmPlan">Create Plan & Update Status</button></div>
+    </div>
+  </div>
+
+  <!-- Legal Handover Pack Modal -->
+  <div class="modal-backdrop" id="legalModalBackdrop">
+    <div class="modal" style="width:min(860px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Legal Handover Pack — Escalation Drawer</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseLegalModal">✕</button>
+      </div>
+      <div class="modal-body" id="legalBody">
+        <div style="text-align:center;padding:24px;color:#64748B">Select a tenant to generate handover pack...</div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelLegal">Close</button><button class="btn"
+          id="btnDownloadJson">Download JSON Bundle</button><button class="btn btn-primary" id="btnDownloadPdf">Export
+          PDF-Ready Pack</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop">
+    <div class="modal confirm">
+      <div class="modal-head">
+        <h4 id="confirmTitle" style="margin:0">Confirm</h4>
+      </div>
+      <div class="modal-body" id="confirmBody">Are you sure?</div>
+      <div class="modal-foot"><button class="btn" id="confirmCancel">Cancel</button><button class="btn btn-danger"
+          id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/finance-arrears.js"></script>
+</body>
+
+</html>

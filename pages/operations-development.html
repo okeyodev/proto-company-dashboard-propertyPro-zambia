@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Development Projects — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/operations.css" />
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="ops-page">
+          <div class="page-head">
+            <div>
+              <h1>Development Projects <span class="badge-new">ToR 8.10 • CAPEX</span></h1>
+              <p>Lifecycle: Feasibility → Design → Procurement → Execution → Defects Liability. Budget vs Actual
+                tracking, retention 10% (5% at defects), payment certificates (IPC), variation orders, contractor
+                management linked to ERP procurement.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportCSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
+              <button class="btn" id="btnVariationLog">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                </svg>
+                Variation Orders
+              </button>
+              <button class="btn btn-primary" id="btnNewProject">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                New Project
+              </button>
+              <button class="btn btn-primary" id="btnIssueCert" style="background:#0F172A;border-color:#0F172A">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2" />
+                  <path d="M16 7V5a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v2" />
+                </svg>
+                Issue Payment Cert
+              </button>
+            </div>
+          </div>
+
+          <div class="workflow-strip" id="workflowStrip">
+            <div class="workflow-step done">Feasibility</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step done">Design</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Procurement</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step active">Execution</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Practical Completion</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Defects Liability</div>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <span class="pill blue" id="activeCount">0 Active</span>
+              <span class="pill amber" id="retentionCount">Retention ZMW 0</span>
+            </div>
+          </div>
+
+          <div class="kpi-grid operations" id="kpiGrid"></div>
+
+          <div class="filters-bar">
+            <div class="filters-left">
+              <div class="filter-group">
+                <label>Search</label>
+                <div class="search-wrap">
+                  <span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.3-4.3" />
+                    </svg></span>
+                  <input id="searchInputLocal" class="search-input"
+                    placeholder="Project ID, name, property, contractor..." />
+                </div>
+              </div>
+              <div class="filter-group"><label>Property</label><select id="filterProperty" class="filter-select">
+                  <option value="">All Properties</option>
+                </select></div>
+              <div class="filter-group"><label>Lifecycle Stage</label><select id="filterStage" class="filter-select">
+                  <option value="">All Stages</option>
+                  <option>Feasibility</option>
+                  <option>Design</option>
+                  <option>Procurement</option>
+                  <option>Execution</option>
+                  <option>Practical Completion</option>
+                  <option>Defects Liability</option>
+                  <option>Closed</option>
+                </select></div>
+              <div class="filter-group"><label>Status</label><select id="filterStatus" class="filter-select">
+                  <option value="">All Statuses</option>
+                  <option>In Progress</option>
+                  <option>Pending Approval</option>
+                  <option>On Hold</option>
+                  <option>Completed</option>
+                </select></div>
+              <div class="filter-group"><label>Contractor</label><select id="filterContractor" class="filter-select">
+                  <option value="">All Contractors</option>
+                </select></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <button class="btn btn-sm" id="btnResetFilters">Reset Filters</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Development Projects • <span id="countLabel">0</span> projects • Budget ZMW <span
+                  id="budgetLabel">0M</span> • Spent <span id="spentLabel">0M</span> • Variance <span
+                  id="varianceLabel">0M</span></h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="pageSize" class="filter-select" style="height:32px;min-width:100px">
+                  <option value="25">25 / page</option>
+                  <option value="50" selected>50 / page</option>
+                  <option value="100">100 / page</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="projectsTable">
+                <thead>
+                  <tr>
+                    <th>Project ID</th>
+                    <th>Project Name</th>
+                    <th>Property</th>
+                    <th>Lifecycle Stage</th>
+                    <th>Approved Budget</th>
+                    <th>Spent to Date</th>
+                    <th>Retention Held</th>
+                    <th>Contractor</th>
+                    <th>Target Completion</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="projectsTbody">
+                  <tr>
+                    <td colspan="10" style="padding:24px;text-align:center;color:#64748B">Loading projects...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div id="tableInfo">Showing 0 projects</div>
+              <div style="display:flex;gap:6px"><button class="btn btn-sm" id="prevPage">Prev</button><button
+                  class="btn btn-sm" id="nextPage">Next</button></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <div class="card-head">
+              <h3>Payment Certificates Summary • MTD Spend Tracking</h3>
+            </div>
+            <div style="padding:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px" id="certSummary"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <div class="drawer" id="devDrawer">
+    <div class="drawer-head">
+      <div class="drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">DEV-0001</h2>
+          <span class="mono" id="drawerId">Zambezi Mall Extension</span>
+          <span class="pill blue" id="drawerStage">Execution</span>
+          <span class="pill green" id="drawerStatus">In Progress</span>
+        </div>
+        <div class="meta" style="font-size:12px;color:#64748B;margin-top:6px"><span id="drawerSubtitle">Property •
+            Contractor • PM</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-summary" id="drawerSummary"></div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" data-tab="budget">Budget vs Actual</div>
+      <div class="drawer-tab" data-tab="certs">Payment Certificates</div>
+      <div class="drawer-tab" data-tab="variations">Variation Orders</div>
+      <div class="drawer-tab" data-tab="retention">Retention</div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-actions" id="drawerActions">
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnViewBOQ">View BOQ</button><button
+          class="btn btn-sm" id="btnEditProject">Edit Project</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnVariationOrder">Variation
+          Order</button><button class="btn btn-primary btn-sm" id="btnDrawerIssueCert">Issue Payment
+          Certificate</button></div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu"></div>
+
+  <!-- New Project Modal -->
+  <div class="modal-backdrop" id="projectModalBackdrop">
+    <div class="modal" style="width:min(780px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800" id="projectModalTitle">New Development Project</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseProjectModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Property *</label><select id="dProperty" class="form-select"
+              required>
+              <option value="">Select Property</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Project Name *</label><input id="dName" class="form-input"
+              placeholder="e.g. Zambezi Mall Extension - Phase 2" /></div>
+          <div class="form-group"><label class="form-label">Lifecycle Stage *</label><select id="dStage"
+              class="form-select">
+              <option>Feasibility</option>
+              <option>Design</option>
+              <option>Procurement</option>
+              <option selected>Execution</option>
+              <option>Practical Completion</option>
+              <option>Defects Liability</option>
+              <option>Closed</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Status</label><select id="dStatus" class="form-select">
+              <option>In Progress</option>
+              <option>Pending Approval</option>
+              <option>On Hold</option>
+              <option>Completed</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Approved Budget (ZMW) *</label><input type="number"
+              id="dBudget" class="form-input" placeholder="e.g. 45000000" min="0" /></div>
+          <div class="form-group"><label class="form-label">Spent to Date (ZMW)</label><input type="number" id="dSpent"
+              class="form-input" placeholder="e.g. 28500000" min="0" /></div>
+          <div class="form-group"><label class="form-label">Contractor *</label><select id="dContractor"
+              class="form-select">
+              <option value="">Select Contractor</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Project Manager</label><input id="dPM" class="form-input"
+              placeholder="e.g. Peter Zulu" /></div>
+          <div class="form-group"><label class="form-label">Start Date</label><input type="date" id="dStart"
+              class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Target Completion *</label><input type="date" id="dTarget"
+              class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Retention %</label><select id="dRetentionPct"
+              class="form-select">
+              <option value="10">10% - Execution</option>
+              <option value="5">5% - Defects Liability</option>
+              <option value="0">0% - Released</option>
+            </select></div>
+          <div class="form-group full"><label class="form-label">Description / Scope</label><textarea id="dDesc"
+              class="form-textarea" placeholder="Scope of works, BOQ reference, procurement method..."></textarea></div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelProject">Cancel</button><button class="btn btn-primary"
+          id="btnSaveProject">Save Project</button></div>
+    </div>
+  </div>
+
+  <!-- Issue Payment Certificate Modal -->
+  <div class="modal-backdrop" id="certModalBackdrop">
+    <div class="modal" style="width:min(640px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Issue Payment Certificate (IPC)</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseCertModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Project *</label><select id="cProject" class="form-select">
+              <option value="">Select Project</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Certificate No *</label><input id="cNumber"
+              class="form-input" placeholder="e.g. IPC-04" /></div>
+          <div class="form-group"><label class="form-label">Amount (ZMW) *</label><input type="number" id="cAmount"
+              class="form-input" min="0" placeholder="e.g. 8500000" /></div>
+          <div class="form-group"><label class="form-label">Date *</label><input type="date" id="cDate"
+              class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Status</label><select id="cStatus" class="form-select">
+              <option>Draft</option>
+              <option>Submitted</option>
+              <option>Approved</option>
+              <option>Paid</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Retention Deducted (ZMW)</label><input type="number"
+              id="cRetention" class="form-input" placeholder="Auto 10% if empty" min="0" /></div>
+          <div class="form-group full"><label class="form-label">Work Description / Valuation of Works</label><textarea
+              id="cDesc" class="form-textarea"
+              placeholder="Measured works, materials on site, variation adjustment..."></textarea></div>
+          <div class="form-group full">
+            <div
+              style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;font-size:12px;line-height:1.5">
+              <strong>ERP Procurement Link:</strong> Certificate updates project spent, retention held, and triggers
+              contractor payment in ERPNext. Retention release schedule: 50% at Practical Completion, 50% after Defects
+              Liability (12 months). <span class="pill blue">CAPEX</span> <span class="pill green">ERP Sync</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelCert">Cancel</button><button class="btn btn-primary"
+          id="btnSaveCert">Issue Certificate</button></div>
+    </div>
+  </div>
+
+  <!-- Variation Order Modal -->
+  <div class="modal-backdrop" id="variationModalBackdrop">
+    <div class="modal" style="width:min(560px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Variation Order Log</h3><button class="btn btn-ghost btn-sm"
+          id="btnCloseVariationModal">✕</button>
+      </div>
+      <div class="modal-body" id="variationBody"></div>
+      <div class="modal-foot"><button class="btn" id="btnCancelVariation">Close</button><button class="btn btn-primary"
+          id="btnAddVariation">Add Variation</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop">
+    <div class="modal confirm">
+      <div class="modal-head">
+        <h4 id="confirmTitle" style="margin:0">Confirm</h4>
+      </div>
+      <div class="modal-body" id="confirmBody">Are you sure?</div>
+      <div class="modal-foot"><button class="btn" id="confirmCancel">Cancel</button><button class="btn btn-danger"
+          id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/operations-development.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,382 @@
+<!--
+============================================================================
+ PropertyPro Zambia Ltd - Property Register Page
+ File: pages/property-register.html
+============================================================================
+ PURPOSE:
+   property-register page for PropertyPro Zambia portfolio management.
+   Part of 28 properties, 1,842 units, ZMW 486.4M portfolio.
+
+ STRUCTURE:
+   - app-sidebar: navigation (injected by Layout.js)
+   - app-topbar: search + notifications (works on ALL pages now)
+   - app-breadcrumb: CLICKABLE breadcrumb trail (fixed per user request)
+     * Home > Section > Current Page, all links clickable
+     * Auto-generates for future pages via Layout.js guessMeta()
+   - content: main page content
+
+ FIXES APPLIED:
+   1. Breadcrumb: Now properly named and clickable for current + future pages
+      - Uses Layout.init with explicit breadcrumbs array (Home, Section, Page)
+      - All crumbs have href and are clickable
+      - Old hardcoded breadcrumbs hidden by Layout.js
+   2. Search & Notification: Work on all pages (fixed in Layout.js + common.js)
+      - Topbar always includes btnNotif, notifPanel, btnSearchOpen
+      - Global search backdrop ensured via ensureGlobalElements()
+   3. Comments added throughout for navigation & debugging
+
+ DEPENDENCIES:
+   - css/common.css, css/layout.css, css/pages/property-register.css
+   - js/common.js (state, search, nav)
+   - js/layout.js (sidebar, topbar, breadcrumb - fixed)
+   - js/pages/property-register.js (page logic)
+
+ DEBUGGING:
+   - Check console for [Layout] and [Common] logs
+   - Breadcrumb data: window.Layout.NAV_CONFIG
+   - Search: Ctrl+K or click search icon
+   - Notifications: click bell icon
+============================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Property Register — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+  <link rel="stylesheet" href="../css/pages/property-register.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <div class="app">
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn" id="btnToggleSidebar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.7">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg></button>
+        <div class="search-wrap">
+          <span class="search-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8">
+              <circle cx="11" cy="11" r="6" />
+              <path d="M20 20l-3.5-3.5" />
+            </svg></span>
+          <input id="searchInput" placeholder="Search properties, tenants, leases, invoices..." />
+          <kbd>Ctrl K</kbd>
+        </div>
+        <div class="topbar-right">
+          <button class="icon-btn" id="btnSearchOpen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.7">
+              <circle cx="11" cy="11" r="6" />
+              <path d="M20 20l-3.5-3.5" />
+            </svg></button>
+          <button class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.7">
+              <path d="M6 9a6 6 0 0 1 12 0c0 7 6 7 6 9H0s6-2 6-9" />
+              <path d="M10 21a2 2 0 0 0 4 0" />
+            </svg></button>
+          <div style="display:flex;align-items:center;gap:10px;padding-left:10px;border-left:1px solid var(--border)">
+            <div style="text-align:right;line-height:1.1">
+              <div style="font-weight:600;font-size:13px">Chanda Mwanza</div>
+              <div style="font-size:11px;color:var(--muted)">Portfolio Manager • CM</div>
+            </div>
+            <div class="avatar">CM</div>
+          </div>
+        </div>
+      </header>
+      <div class="content">
+        <div class="pr-page">
+          <div class="pr-breadcrumb"><span>Portfolio</span> › <b>Property Register</b> › <span class="pr-badge"
+              style="margin-left:6px">PropertyPro Zambia Ltd • ZMW</span></div>
+          <!-- Page Header: Property Register title + import/export/add actions -->
+          <div class="pr-header">
+            <div>
+              <h1>Property Register</h1>
+              <p>Manage your entire portfolio and lifecycle — Acquisition → Lease-up → Stabilized → Value-Add → Disposal
+                • 28 Properties • ZMW 486.4M</p>
+            </div>
+            <div class="pr-header-actions">
+              <button class="pr-btn" id="btnImport"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.8">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg> Import</button>
+              <button class="pr-btn" id="btnExport"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.8">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg> Export</button>
+              <button class="pr-btn pr-btn-primary" id="btnAddProperty"><svg width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg> Add Property</button>
+            </div>
+          </div>
+
+          <div class="pr-kpi-grid" id="kpiRow">
+            <div class="pr-kpi">
+              <div class="label">Properties</div>
+              <div class="value" id="kpiProps">28</div>
+              <div class="meta"><span class="trend up">+2 this year</span><span>4 cities</span></div>
+            </div>
+            <div class="pr-kpi kpi-violet">
+              <div class="label">Portfolio Value</div>
+              <div class="value" id="kpiValue">ZMW 486.4M</div>
+              <div class="meta"><span class="trend up">+6.8% YoY</span><span>Valuation Jun 30</span></div>
+            </div>
+            <div class="pr-kpi kpi-green">
+              <div class="label">Total Units</div>
+              <div class="value" id="kpiUnits">1,842</div>
+              <div class="meta"><span id="kpiOccCount">1,529 occ</span> • <span id="kpiVacCount">313 vac</span></div>
+            </div>
+            <div class="pr-kpi kpi-amber">
+              <div class="label">Occupancy</div>
+              <div class="value" id="kpiOccupancy">83%</div>
+              <div class="meta"><span class="trend up">+4.2% YoY</span><span>Target 90%</span></div>
+            </div>
+            <div class="pr-kpi kpi-slate">
+              <div class="label">Net Yield</div>
+              <div class="value" id="kpiYield">6.7%</div>
+              <div class="meta"><span class="trend neutral">Stabilized avg</span><span>NOI ZMW 8.23M</span></div>
+            </div>
+          </div>
+
+          <div class="pr-filters-card" id="filtersBar">
+            <div class="pr-search">
+              <span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.8">
+                  <circle cx="11" cy="11" r="6" />
+                  <path d="M20 20l-3.5-3.5" />
+                </svg></span>
+              <input id="filterSearch" placeholder="Search name, ID, city, type..." autocomplete="off" />
+            </div>
+            <div class="pr-filters-group">
+              <select class="pr-select" id="filterType">
+                <option value="All">All Types</option>
+                <option value="Retail">Retail</option>
+                <option value="Residential">Residential</option>
+                <option value="Commercial">Commercial</option>
+                <option value="Industrial">Industrial</option>
+                <option value="Mixed-Use">Mixed-Use</option>
+              </select>
+              <select class="pr-select" id="filterCity">
+                <option value="All">All Cities</option>
+                <option value="Lusaka">Lusaka</option>
+                <option value="Ndola">Ndola</option>
+                <option value="Chipata">Chipata</option>
+                <option value="Kabwe">Kabwe</option>
+              </select>
+              <select class="pr-select" id="filterLifecycle">
+                <option value="All">All Lifecycle</option>
+                <option value="Acquisition">Acquisition</option>
+                <option value="Lease-up">Lease-up</option>
+                <option value="Stabilized">Stabilized</option>
+                <option value="Value-Add">Value-Add</option>
+                <option value="Disposal">Disposal</option>
+              </select>
+              <select class="pr-select" id="filterOccupancy">
+                <option value="All">All Occupancy</option>
+                <option value=">80">>80%</option>
+                <option value="<80">
+                  <80%< /option>
+              </select>
+              <select class="pr-select" id="filterStatus">
+                <option value="All">All Status</option>
+                <option value="Stabilized">Stabilized</option>
+                <option value="Lease-up">Lease-up</option>
+                <option value="Value-Add">Value-Add</option>
+              </select>
+            </div>
+            <div class="pr-filters-actions">
+              <span class="pr-badge" id="filterCount">28 properties</span>
+              <button class="pr-btn pr-btn-ghost" id="btnClearFilters" style="height:32px">Clear</button>
+            </div>
+          </div>
+
+          <div class="pr-table-card">
+            <div class="pr-table-head">
+              <h3>Registered Properties <span class="pr-badge" id="tableBadge" style="margin-left:8px">28</span></h3>
+              <div class="right"><span id="tableMeta">Showing 20 of 28 • Sorted by Name</span><button class="pr-btn"
+                  style="height:30px" id="btnToggleHierarchy"><svg width="14" height="14" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg> Hierarchy</button></div>
+            </div>
+            <div class="pr-table-wrap" id="propertyTableWrap">
+              <table class="pr-table" id="propertyTable">
+                <thead>
+                  <tr id="tableHeadRow"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+              </table>
+            </div>
+            <div id="emptyState" class="pr-empty" style="display:none;">
+              <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.6">
+                  <circle cx="11" cy="11" r="6" />
+                  <path d="M20 20l-3.5-3.5" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg></div>
+              <h4>No properties match your filters</h4>
+              <p>Try adjusting search, city, type, lifecycle or occupancy filters. Clear filters to see full portfolio
+                of 28 properties across Lusaka, Ndola, Chipata and Kabwe.</p>
+              <button class="pr-btn pr-btn-primary" onclick="document.getElementById('btnClearFilters').click()">Clear
+                all filters</button>
+            </div>
+            <div class="pr-pagination" id="pagination"></div>
+          </div>
+
+          <div class="pr-hierarchy-card" id="hierarchyCard">
+            <div class="pr-hierarchy-head">
+              <div>
+                <h3>Property Hierarchy Explorer</h3>
+                <div class="sub">Portfolio → Property → Block → Floor → Unit → Space → Fixed Asset • Click unit to view
+                  details</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center"><span class="pr-badge">28 Properties • 1,842
+                  Units</span><button class="pr-btn" style="height:30px" id="btnExpandAll">Expand all</button><button
+                  class="pr-btn" style="height:30px" id="btnCollapseAll">Collapse</button></div>
+            </div>
+            <div class="pr-hierarchy-body">
+              <div class="pr-tree" id="hierarchyTree"></div>
+              <div class="pr-detail-pane" id="hierarchyDetail">
+                <div class="pr-detail-empty">
+                  <div>
+                    <div style="font-size:20px;margin-bottom:8px">🏢</div>
+                    <div style="font-weight:600;color:var(--text)">Select a unit to inspect</div>
+                    <div style="font-size:12.5px;margin-top:4px">Navigate Portfolio → Property → Block → Floor → Unit.
+                      Fixed assets like HVAC-001 are linked under spaces.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pr-drawer-backdrop" id="drawerBackdrop"></div>
+
+  <div class="pr-drawer" id="detailDrawer">
+    <div class="pr-drawer-header">
+      <div class="pr-drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">Zambezi Mall</h2><span class="mono" id="drawerId">P-001</span><span id="drawerCity"
+            style="font-size:12px;color:var(--muted)">Lusaka</span><span class="pr-pill status-stabilized"
+            id="drawerStatus">Stabilized</span>
+        </div>
+        <div class="meta"><span id="drawerSubtitle">184 Units • 85% Occupied • ZMW 86.4M • 6.8% Yield</span><span
+            class="pr-badge" id="drawerLifecycle">Stabilized</span></div>
+      </div>
+      <button class="pr-btn pr-btn-ghost" id="btnCloseDrawer" style="width:32px;height:32px;padding:0"><svg width="16"
+          height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg></button>
+    </div>
+    <div class="pr-drawer-summary" id="drawerSummary"></div>
+    <div class="pr-drawer-tabs" id="drawerTabs">
+      <div class="pr-drawer-tab active" data-tab="overview">Overview</div>
+      <div class="pr-drawer-tab" data-tab="units">Units</div>
+      <div class="pr-drawer-tab" data-tab="financials">Financials</div>
+      <div class="pr-drawer-tab" data-tab="leases">Leases</div>
+      <div class="pr-drawer-tab" data-tab="documents">Documents</div>
+      <div class="pr-drawer-tab" data-tab="maintenance">Maintenance</div>
+      <div class="pr-drawer-tab" data-tab="compliance">Compliance</div>
+      <div class="pr-drawer-tab" data-tab="activity">Activity</div>
+    </div>
+    <div class="pr-drawer-body" id="drawerBody"></div>
+    <div class="pr-drawer-actions">
+      <button class="pr-btn pr-btn-primary" id="btnEditProperty"><svg width="14" height="14" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg> Edit Property</button>
+      <button class="pr-btn" id="btnViewUnits">View Units</button>
+      <button class="pr-btn" id="btnViewLeases">View Leases</button>
+      <button class="pr-btn" id="btnViewDocs">View Documents</button>
+      <button class="pr-btn" id="btnExportProp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.8">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg> Export Property</button>
+    </div>
+  </div>
+
+  <div class="pr-confirm-backdrop" id="confirmBackdrop">
+    <div class="pr-confirm">
+      <div class="pr-confirm-head">
+        <h4 id="confirmTitle">Confirm action</h4>
+      </div>
+      <div class="pr-confirm-body" id="confirmBody">Are you sure?</div>
+      <div class="pr-confirm-foot"><button class="pr-btn" id="confirmCancel">Cancel</button><button
+          class="pr-btn pr-btn-danger" id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="globalSearchBackdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex:1"><svg width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="#64748B" stroke-width="1.8">
+            <circle cx="11" cy="11" r="6" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg><input id="globalSearchInput"
+            placeholder="Search or jump to... Property, Tenant, Unit, Lease, Invoice, Payment, Maintenance, Document, Report"
+            style="flex:1;border:0;outline:0;font-size:14px" autofocus /></div><button class="btn btn-ghost"
+          onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+      </div>
+      <div class="modal-body">
+        <div class="small muted" style="margin-bottom:8px">Try: Zambezi, Kabwelwa, L-2026, INV-, MNT-</div>
+        <div id="globalSearchResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/dashboard.js"></script>
+  <script src="../js/pages/property-register.js"></script>
+
+  <!-- FIX: Breadcrumb properly named and clickable for current + future pages -->
+  <script>
+    // Ensure breadcrumb is properly named and clickable (user request fix)
+    document.addEventListener('DOMContentLoaded', () => {
+      // Small delay to ensure Layout.js has initialized
+      setTimeout(() => {
+        if (window.Layout && window.Layout.renderBreadcrumb) {
+          const bc = document.getElementById('app-breadcrumb');
+          if (bc) {
+            window.Layout.renderBreadcrumb(bc, [
+              { label: 'Home', href: '../index.html' },
+              { label: 'Portfolio', href: './property-register.html' },
+              { label: 'Property Register', href: './property-register.html' }
+            ]);
+            console.log('[Page:property-register] Breadcrumb fixed to clickable version');
+          }
+        }
+      }, 100);
+    });
+  </script>
+
+</body>
+
+</html>

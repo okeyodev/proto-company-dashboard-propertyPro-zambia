@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Messages & Inbox — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/enterprise.css" />
+</head>
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="enterprise-page">
+          <div class="page-head">
+            <div>
+              <h1>Messages & Inbox <span class="badge-new">ToR 9.1 • Enterprise</span></h1>
+              <p>Unified inbox for tenant portal, USSD *123#, and email channels. Threads grouped by property and counterparty. Integrated with leasing and maintenance workflows.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnMarkAllRead">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Mark all read
+              </button>
+              <button class="btn" id="btnArchive">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+                Archive
+              </button>
+              <button class="btn btn-primary" id="btnNewMessage">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Message
+              </button>
+            </div>
+          </div>
+
+          <div class="kpi-grid enterprise" id="kpiGrid">
+            <!-- Filled by JS -->
+          </div>
+
+          <div class="inbox-layout" id="inboxLayout">
+            <!-- LEFT PANE: Thread List -->
+            <div class="inbox-sidebar">
+              <div class="inbox-sidebar-head">
+                <div class="search-wrap">
+                  <span class="search-ico">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+                  </span>
+                  <input id="searchInputLocal" class="search-input" placeholder="Search sender, property, subject..." />
+                </div>
+                <div class="filter-row" id="filterRow">
+                  <button class="filter-chip active" data-filter="all">All</button>
+                  <button class="filter-chip" data-filter="unread">Unread</button>
+                  <button class="filter-chip" data-filter="Portal">Portal</button>
+                  <button class="filter-chip" data-filter="USSD">USSD</button>
+                  <button class="filter-chip" data-filter="Email">Email</button>
+                  <button class="filter-chip" data-filter="SMS">SMS</button>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted)">
+                  <span id="threadCount">0 threads</span>
+                  <select id="sortSelect" class="reply-select" style="height:26px;font-size:11px">
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="unread">Unread first</option>
+                  </select>
+                </div>
+              </div>
+              <div class="thread-list" id="threadList">
+                <div style="padding:24px;text-align:center;color:var(--muted)">Loading messages...</div>
+              </div>
+            </div>
+
+            <!-- RIGHT PANE: Reading + Reply -->
+            <div class="reading-pane" id="readingPane">
+              <div class="reading-empty" id="readingEmpty">
+                <div>
+                  <div style="font-size:36px;margin-bottom:10px">✉️</div>
+                  <div style="font-weight:700;color:var(--text);margin-bottom:4px">Select a thread to read</div>
+                  <div style="font-size:13px">Messages from portal tenants, USSD dial-ins, and email integrations appear here. Channel pills indicate origin: Portal / USSD / Email.</div>
+                </div>
+              </div>
+
+              <div id="readingActive" style="display:none;flex:1;flex-direction:column;min-height:0">
+                <div class="reading-header">
+                  <div class="reading-title">
+                    <h2 id="readingSubject">Subject</h2>
+                    <div class="reading-subtitle" id="readingSubtitle">
+                      <!-- sender • property • channel • date -->
+                    </div>
+                  </div>
+                  <div class="reading-actions">
+                    <button class="btn btn-sm" id="btnReplyTemplate">Templates</button>
+                    <button class="btn btn-sm" id="btnCloseThread">✕</button>
+                  </div>
+                </div>
+
+                <div class="thread-history" id="threadHistory">
+                  <!-- Bubbles rendered by JS -->
+                </div>
+
+                <div class="reply-box">
+                  <div class="reply-toolbar">
+                    <div style="display:flex;gap:6px;align-items:center">
+                      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">Reply via</label>
+                      <select id="replyChannel" class="reply-select">
+                        <option value="Portal">Portal</option>
+                        <option value="Email">Email</option>
+                        <option value="USSD">USSD</option>
+                        <option value="SMS">SMS</option>
+                      </select>
+                      <span class="pill portal" id="replyChannelPill">Portal</span>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted)" id="replyHint">Replying as Chanda Mwanza • Enterprise v3.2</div>
+                  </div>
+                  <textarea id="replyText" class="reply-textarea" placeholder="Type your reply... Press Ctrl+Enter to send"></textarea>
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="display:flex;gap:6px">
+                      <button class="btn btn-sm btn-ghost" id="btnAttach">📎 Attach</button>
+                      <button class="btn btn-sm btn-ghost" id="btnCanned">💬 Canned</button>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                      <button class="btn btn-sm" id="btnDiscard">Discard</button>
+                      <button class="btn btn-primary btn-sm" id="btnSendReply">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        Send Reply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Message Modal -->
+  <div class="modal-backdrop" id="newMessageBackdrop">
+    <div class="modal" style="width:min(560px,100%)">
+      <div class="modal-head"><h3 style="margin:0;font-size:16px;font-weight:800">New Message</h3><button class="btn btn-ghost btn-sm" id="btnCloseNewMsg">✕</button></div>
+      <div class="modal-body">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">Property</label><select id="nmProperty" style="width:100%;height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"><option value="">Select Property</option></select></div>
+            <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">Recipient (Tenant / Contractor)</label><select id="nmRecipient" style="width:100%;height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"><option value="">Select Tenant</option></select></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">Channel</label><select id="nmChannel" style="width:100%;height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"><option>Portal</option><option>Email</option><option>USSD</option><option>SMS</option></select></div>
+            <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">Subject</label><input id="nmSubject" style="width:100%;height:36px;border:1px solid var(--border);border-radius:8px;padding:0 12px" placeholder="e.g. Rent reminder" /></div>
+          </div>
+          <div><label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">Message</label><textarea id="nmBody" style="width:100%;min-height:100px;border:1px solid var(--border);border-radius:10px;padding:12px" placeholder="Type message..."></textarea></div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelNewMsg">Cancel</button><button class="btn btn-primary" id="btnSendNewMsg">Send Message</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/enterprise-messages.js"></script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Utilities & Service Charges — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/finance.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    .tab-btn {
+      height: 36px;
+      padding: 0 14px;
+      border: 1px solid #E2E8F0;
+      border-bottom: 0;
+      border-radius: 8px 8px 0 0;
+      background: #F8FAFC;
+      color: #64748B;
+      font-size: 12.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: .15s
+    }
+
+    .tab-btn.active {
+      background: #0F172A;
+      color: #FFF;
+      border-color: #0F172A
+    }
+
+    .tab-panel {
+      animation: fadeIn .18s ease
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .spike-row {
+      border: 2px solid #FECACA !important;
+      background: #FEF2F2 !important;
+      border-left: 4px solid #DC2626 !important
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="finance-page">
+          <div class="page-head">
+            <div>
+              <h1>Utilities & Service Charges <span class="badge-new">ToR 8.8</span></h1>
+              <p>Meter reading validation with >20% spike detection over 3-month average, auto-generation of utility
+                recharge invoices into <code>state.invoices</code>, and year-end budget reconciliation vs
+                <code>state.maintenance</code> actuals per m².</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportCSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
+              <button class="btn" id="btnEnterReadings">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Enter Meter Readings
+              </button>
+              <button class="btn btn-primary" id="btnRunReconciliation">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="17 1 21 5 17 9" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <polyline points="7 23 3 19 7 15" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                </svg>
+                Run Year-End Reconciliation
+              </button>
+            </div>
+          </div>
+
+          <div class="kpi-grid finance" id="kpiGrid"></div>
+
+          <div class="tabs-bar"
+            style="margin:16px 0 12px;display:flex;gap:8px;border-bottom:1px solid var(--border, #E2E8F0);padding-bottom:0">
+            <button class="tab-btn active" data-tab="meters">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Utility Meter Readings
+            </button>
+            <button class="tab-btn" data-tab="budget">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v18h18" />
+                <path d="M9 17V9" />
+                <path d="M13 17V11" />
+                <path d="M17 17V13" />
+              </svg>
+              Service Charge Budget Reconciliation
+            </button>
+          </div>
+
+          <!-- Meters Tab -->
+          <div class="tab-panel active" id="panel-meters">
+            <div class="filters-bar">
+              <div class="filters-left">
+                <div class="filter-group"><label>Search</label>
+                  <div class="search-wrap"><span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.3-4.3" />
+                      </svg></span><input id="searchMeters" class="search-input"
+                      placeholder="Property, unit, meter #, tenant..." /></div>
+                </div>
+                <div class="filter-group"><label>Property</label><select id="filterPropertyMeter" class="filter-select">
+                    <option value="">All Properties</option>
+                  </select></div>
+                <div class="filter-group"><label>Utility</label><select id="filterUtility" class="filter-select">
+                    <option value="">All Utilities</option>
+                    <option value="Water">Water</option>
+                    <option value="Electricity">Electricity</option>
+                    <option value="Common Electricity">Common Electricity</option>
+                  </select></div>
+                <div class="filter-group"><label>Spike Alert</label><select id="filterSpike" class="filter-select">
+                    <option value="">All</option>
+                    <option value="spike">Spikes >20%</option>
+                    <option value="normal">Normal</option>
+                  </select></div>
+                <div class="filter-group"><label>Status</label><select id="filterMeterStatus" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="Invoiced">Invoiced</option>
+                    <option value="Pending Invoice">Pending Invoice</option>
+                    <option value="Verified">Verified</option>
+                  </select></div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:flex-end"><button class="btn btn-sm"
+                  id="btnResetMeterFilters">Reset</button></div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>Meter Readings • <span id="meterCount">0</span> meters • Consumption <span
+                    id="totalConsumption">0</span> • Spikes <span id="spikeCount"
+                    style="color:#DC2626;font-weight:800">0</span> • To Invoice <span id="toInvoiceCount"
+                    class="amount outstanding">0</span></h3>
+                <div style="display:flex;gap:8px"><select id="meterPageSize" class="filter-select"
+                    style="height:32px;min-width:100px">
+                    <option value="25">25 / page</option>
+                    <option value="50" selected>50 / page</option>
+                    <option value="100">100 / page</option>
+                  </select></div>
+              </div>
+              <div class="table-wrap">
+                <table id="metersTable">
+                  <thead>
+                    <tr>
+                      <th>Property</th>
+                      <th>Unit</th>
+                      <th>Meter #</th>
+                      <th>Previous Reading</th>
+                      <th>Current Reading</th>
+                      <th>Consumption</th>
+                      <th>Spikes (>20% alert)</th>
+                      <th>Utility Invoice Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="metersTbody">
+                    <tr>
+                      <td colspan="9" style="padding:24px;text-align:center;color:#64748B">Loading meters...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-footer">
+                <div id="meterTableInfo">Showing 0 meters</div>
+                <div style="display:flex;gap:6px"><button class="btn btn-sm" id="meterPrev">Prev</button><button
+                    class="btn btn-sm" id="meterNext">Next</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Budget Reconciliation Tab -->
+          <div class="tab-panel" id="panel-budget" style="display:none">
+            <div class="filters-bar">
+              <div class="filters-left">
+                <div class="filter-group"><label>Search</label>
+                  <div class="search-wrap"><span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.3-4.3" />
+                      </svg></span><input id="searchBudget" class="search-input"
+                      placeholder="Property, budget line..." /></div>
+                </div>
+                <div class="filter-group"><label>Year</label><select id="filterYear" class="filter-select">
+                    <option value="2026" selected>2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                  </select></div>
+                <div class="filter-group"><label>Property</label><select id="filterPropertyBudget"
+                    class="filter-select">
+                    <option value="">All Properties</option>
+                  </select></div>
+                <div class="filter-group"><label>Reconciliation</label><select id="filterReconStatus"
+                    class="filter-select">
+                    <option value="">All</option>
+                    <option value="Surplus">Surplus</option>
+                    <option value="Deficit">Deficit</option>
+                    <option value="Balanced">Balanced</option>
+                    <option value="Pending">Pending</option>
+                  </select></div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:flex-end"><button class="btn btn-sm"
+                  id="btnResetBudgetFilters">Reset</button><button class="btn btn-sm btn-primary"
+                  id="btnGenerateRecon">Generate Reconciliation</button></div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>Budget Reconciliation • <span id="budgetCount">0</span> lines • Budgeted ZMW <span
+                    id="totalBudgeted">0</span> • Actual ZMW <span id="totalActual">0</span> • Variance <span
+                    id="totalVariance" style="font-weight:800">ZMW 0</span></h3>
+                <div style="display:flex;gap:8px"><select id="budgetPageSize" class="filter-select"
+                    style="height:32px;min-width:100px">
+                    <option value="25">25 / page</option>
+                    <option value="50" selected>50 / page</option>
+                    <option value="100">100 / page</option>
+                  </select></div>
+              </div>
+              <div class="table-wrap">
+                <table id="budgetTable">
+                  <thead>
+                    <tr>
+                      <th>Property</th>
+                      <th>GLA m²</th>
+                      <th>Budget Line</th>
+                      <th>Budgeted ZMW</th>
+                      <th>Budgeted per m²</th>
+                      <th>Actual Maintenance Costs</th>
+                      <th>Actual per m²</th>
+                      <th>Year-end Variance</th>
+                      <th>Reconciliation Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="budgetTbody">
+                    <tr>
+                      <td colspan="10" style="padding:24px;text-align:center;color:#64748B">Calculating budget vs
+                        maintenance...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-footer">
+                <div id="budgetTableInfo">Showing 0 lines</div>
+                <div style="display:flex;gap:6px"><button class="btn btn-sm" id="budgetPrev">Prev</button><button
+                    class="btn btn-sm" id="budgetNext">Next</button></div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:12px">
+              <div class="card-head">
+                <h3>Reconciliation Summary per Property</h3>
+              </div>
+              <div class="table-wrap">
+                <table id="reconSummaryTable">
+                  <thead>
+                    <tr>
+                      <th>Property</th>
+                      <th>GLA</th>
+                      <th>Budgeted OpEx</th>
+                      <th>Actual Maintenance</th>
+                      <th>Variance</th>
+                      <th>Variance %</th>
+                      <th>Service Charge Recovery</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reconSummaryTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <!-- Meter Detail Drawer -->
+  <div class="drawer" id="meterDrawer">
+    <div class="drawer-head">
+      <div class="drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">Meter - WTR-001</h2><span class="mono" id="drawerId">WTR-001</span><span class="pill red"
+            id="drawerSpike" style="display:none">SPIKE >20%</span><span class="pill blue" id="drawerStatus">Pending
+            Invoice</span>
+        </div>
+        <div class="meta" style="font-size:12px;color:#64748B;margin-top:6px"><span id="drawerSubtitle">Property • Unit
+            • Tenant • Utility</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-summary" id="drawerSummary"></div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" data-tab="reading">Reading & Spike</div>
+      <div class="drawer-tab" data-tab="history">3-Month History</div>
+      <div class="drawer-tab" data-tab="invoice">Utility Invoice</div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-actions">
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnVerifyReading">Verify Reading</button><button
+          class="btn btn-sm" id="btnEditReading">Edit</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnIgnoreSpike">Ignore Spike</button><button
+          class="btn btn-primary btn-sm" id="btnGenerateInvoice">Generate Recharge Invoice</button></div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu"></div>
+
+  <!-- Enter Meter Readings Modal -->
+  <div class="modal-backdrop" id="meterModalBackdrop">
+    <div class="modal" style="width:min(720px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Enter Meter Readings — Bulk Entry</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseMeterModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div
+          style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;font-size:12px;color:#1E40AF;margin-bottom:12px">
+          <strong>ToR 8.8 Logic:</strong> Spike detection =
+          <code>(currentConsumption - avg3Month) / avg3Month > 0.20</code> → red border + alert + requires verification
+          before invoicing. On save, system auto-generates utility recharge invoice into <code>state.invoices</code>
+          with ZRA Smart Invoice No.
+        </div>
+        <div id="meterEntryRows" style="display:flex;flex-direction:column;gap:10px;max-height:360px;overflow:auto">
+        </div>
+        <button class="btn btn-sm" id="btnAddRow" style="margin-top:10px">+ Add Meter Row</button>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelMeter">Cancel</button><button class="btn btn-primary"
+          id="btnSaveMeters">Save & Generate Invoices</button></div>
+    </div>
+  </div>
+
+  <!-- Budget Reconciliation Detail Modal -->
+  <div class="modal-backdrop" id="budgetModalBackdrop">
+    <div class="modal" style="width:min(760px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Budget vs Actual — Year-End Reconciliation</h3><button
+          class="btn btn-ghost btn-sm" id="btnCloseBudgetModal">✕</button>
+      </div>
+      <div class="modal-body" id="budgetModalBody"></div>
+      <div class="modal-foot"><button class="btn" id="btnCancelBudget">Close</button><button class="btn btn-primary"
+          id="btnPostReconciliation">Post Reconciliation to Ledger</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop">
+    <div class="modal confirm">
+      <div class="modal-head">
+        <h4 id="confirmTitle" style="margin:0">Confirm</h4>
+      </div>
+      <div class="modal-body" id="confirmBody">Are you sure?</div>
+      <div class="modal-foot"><button class="btn" id="confirmCancel">Cancel</button><button class="btn btn-danger"
+          id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/finance-service-charges.js"></script>
+</body>
+
+</html>

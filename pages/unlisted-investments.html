@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unlisted Equity / SPV — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/unlisted-investments.css">
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <main class="content">
+        <div class="pr-page">
+          <div class="pr-header">
+            <div>
+              <h1>Unlisted Equity / SPV</h1>
+              <p>Institutional Unlisted Equity / SPV — integrated Property + Investment system</p>
+            </div>
+            <div class="pr-header-actions"><button class="pr-btn" id="unlisted-investmentsExport">Export</button><button
+                class="pr-btn pr-btn-primary" id="unlisted-investmentsAdd">Add New</button></div>
+          </div>
+          <div class="pr-kpi-grid" id="unlisted-investmentsKpiGrid"></div>
+          <div class="pr-filters-card">
+            <div class="pr-search"><input id="unlisted-investmentsSearch"
+                placeholder="Search Unlisted Equity / SPV..." /><span
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94A3B8">🔍</span></div>
+            <div class="pr-filters-group"><select class="pr-select" id="unlisted-investmentsFundFilter">
+                <option value="All">All Funds</option>
+              </select><select class="pr-select" id="unlisted-investmentsStatusFilter">
+                <option value="All">All Status</option>
+              </select></div><button class="pr-btn pr-btn-ghost" id="unlisted-investmentsClear">Clear</button>
+          </div>
+          <div class="pr-table-card">
+            <div class="pr-table-wrap">
+              <table class="pr-table" id="unlisted-investmentsTable">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Status</th>
+                    <th>Owner/Date</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="table-footer"><span id="unlisted-investmentsCount"></span>
+              <div style="display:flex;gap:8px"><button class="btn" id="unlisted-investmentsPrev">Prev</button><button
+                  class="btn" id="unlisted-investmentsNext">Next</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="pr-drawer" id="unlisted-investmentsDrawer">
+          <div class="pr-drawer-backdrop" id="unlisted-investmentsBackdrop"></div>
+          <div class="pr-drawer-panel">
+            <div class="pr-drawer-head">
+              <div>
+                <h2 id="unlisted-investmentsDrawerTitle">Unlisted Equity / SPV</h2>
+                <div class="small muted" id="unlisted-investmentsDrawerMeta"></div>
+              </div><button class="btn" id="unlisted-investmentsClose">✕</button>
+            </div>
+            <div class="pr-drawer-body" id="unlisted-investmentsBody"></div>
+            <div class="pr-drawer-foot"><button class="pr-btn"
+                onclick="document.getElementById('unlisted-investmentsDrawer').classList.remove('open')">Close</button><button
+                class="pr-btn pr-btn-primary">Open Record</button></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="globalSearchBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex:1"><svg width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="#64748B" stroke-width="1.8">
+            <circle cx="11" cy="11" r="6" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg><input id="globalSearchInput" placeholder="Search..." style="flex:1;border:0;outline:0;font-size:14px"
+            autofocus /></div><button class="btn btn-ghost"
+          onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+      </div>
+      <div class="modal-body">
+        <div id="globalSearchResults"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/common.js"></script>
+  <script src="../js/investment-calculations.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/unlisted-investments.js"></script>
+  <script>Layout.init({ currentPage: 'unlisted-investments' });</script>
+</body>
+
+</html>

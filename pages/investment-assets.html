@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio & Asset Register — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/investment-assets.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <main class="content">
+        <div class="pr-page">
+          <div class="pr-header">
+            <div>
+              <h1>Portfolio & Asset Register</h1>
+              <p>Investment equivalent of Property Register • Linked property assets flow upward to fund
+                performance</p>
+            </div>
+            <div class="pr-header-actions"><button class="pr-btn" id="btnImportAssets">Import</button><button
+                class="pr-btn" id="btnExportAssets">Export</button><button class="pr-btn pr-btn-primary"
+                id="btnAddAsset">Add Asset</button></div>
+          </div>
+          <div class="pr-kpi-grid" id="assetKpiGrid"></div>
+          <div class="pr-filters-card">
+            <div class="pr-search"><input id="assetSearch" placeholder="Search asset, ticker, property..." /><span
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94A3B8">🔍</span>
+            </div>
+            <div class="pr-filters-group"><select id="fFund" class="pr-select">
+                <option value="All">All Funds</option>
+              </select><select id="fPortfolio" class="pr-select">
+                <option value="All">All Portfolios</option>
+              </select><select id="fClass" class="pr-select">
+                <option value="All">All Classes</option>
+                <option value="Property">Property</option>
+                <option value="Fixed Income">Fixed Income</option>
+                <option value="Listed Equity">Listed Equity</option>
+                <option value="Unlisted Equity">Unlisted Equity</option>
+                <option value="Collective Investments">Collective</option>
+                <option value="Cash">Cash</option>
+              </select><select id="fRisk" class="pr-select">
+                <option value="All">All Risk</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select><select id="fStatus" class="pr-select">
+                <option value="All">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Monitoring">Monitoring</option>
+              </select></div>
+            <div class="pr-filters-actions"><button class="pr-btn pr-btn-ghost" id="btnClearAssetFilters">Clear</button>
+            </div>
+          </div>
+          <div class="pr-table-card">
+            <div class="pr-table-wrap">
+              <table class="pr-table" id="assetTable">
+                <thead>
+                  <tr>
+                    <th>Asset ID</th>
+                    <th>Name / Property Link</th>
+                    <th>Class</th>
+                    <th>Fund / Portfolio</th>
+                    <th>Cost</th>
+                    <th>Current Value</th>
+                    <th>Gain/Loss</th>
+                    <th>Yield</th>
+                    <th>Risk</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="table-footer"><span id="assetCount"></span>
+              <div style="display:flex;gap:8px"><button class="btn" id="prevAssetPage">Prev</button><button class="btn"
+                  id="nextAssetPage">Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pr-drawer" id="assetDrawer">
+          <div class="pr-drawer-backdrop" id="assetDrawerBackdrop"></div>
+          <div class="pr-drawer-panel">
+            <div class="pr-drawer-head">
+              <div>
+                <h2 id="drawerAssetName">Asset</h2>
+                <div class="small muted" id="drawerAssetMeta"></div>
+              </div><button class="btn" id="btnCloseAssetDrawer">✕</button>
+            </div>
+            <div class="pr-drawer-tabs" id="assetDrawerTabs"><button class="tab active"
+                data-tab="overview">Overview</button><button class="tab"
+                data-tab="financials">Financials</button><button class="tab" data-tab="property">Operational
+                Property</button><button class="tab" data-tab="documents">Documents</button><button class="tab"
+                data-tab="audit">Audit</button></div>
+            <div class="pr-drawer-body" id="assetDrawerBody"></div>
+            <div class="pr-drawer-foot"><button class="pr-btn" id="btnViewProperty">View
+                Property</button><button class="pr-btn" id="btnViewUnits">View Units</button><button
+                class="pr-btn pr-btn-primary" id="btnEditAsset">Edit Asset</button></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="globalSearchBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex:1"><svg width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="#64748B" stroke-width="1.8">
+            <circle cx="11" cy="11" r="6" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg><input id="globalSearchInput" placeholder="Search..." style="flex:1;border:0;outline:0;font-size:14px"
+            autofocus /></div><button class="btn btn-ghost"
+          onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+      </div>
+      <div class="modal-body">
+        <div id="globalSearchResults"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/common.js"></script>
+  <script src="../js/investment-calculations.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/investment-assets.js"></script>
+  <script>Layout.init({ currentPage: 'investment-assets' });</script>
+</body>
+
+</html>

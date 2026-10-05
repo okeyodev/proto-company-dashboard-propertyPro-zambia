@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Payments & Receipts — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/pages/finance.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <div class="content">
+        <div class="finance-page">
+          <div class="page-head">
+            <div>
+              <h1>Payments & Receipts <span class="badge-new">BANK + MOMO</span></h1>
+              <p>Centralized receipting for Stanbic, ZANACO, Airtel Money, MTN Money. Auto-reconcile against oldest open
+                invoices per tenant, track unallocated funds, and post to tenant ledger with ZRA audit trail.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportCSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
+              <button class="btn" id="btnAutoReconcile">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="17 1 21 5 17 9" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <polyline points="7 23 3 19 7 15" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                </svg>
+                Auto-Reconcile All
+              </button>
+              <button class="btn btn-primary" id="btnLogPayment">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Log Manual Payment
+              </button>
+            </div>
+          </div>
+
+          <div class="workflow-strip" id="workflowStrip">
+            <div class="workflow-step done">Received</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step active">Unallocated</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Allocated</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Reconciled</div><span class="workflow-arrow">›</span>
+            <div class="workflow-step">Posted to Ledger</div>
+          </div>
+
+          <div class="kpi-grid finance" id="kpiGrid"></div>
+
+          <div class="filters-bar">
+            <div class="filters-left">
+              <div class="filter-group">
+                <label>Search</label>
+                <div class="search-wrap">
+                  <span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.3-4.3" />
+                    </svg></span>
+                  <input id="searchInputLocal" class="search-input"
+                    placeholder="Search receipt #, tenant, ref code..." />
+                </div>
+              </div>
+              <div class="filter-group"><label>Channel</label>
+                <select id="filterChannel" class="filter-select">
+                  <option value="">All Channels</option>
+                  <option value="Stanbic Bank">Stanbic Bank</option>
+                  <option value="ZANACO">ZANACO</option>
+                  <option value="Airtel Money">Airtel Money</option>
+                  <option value="MTN Mobile Money">MTN Mobile Money</option>
+                  <option value="MTN MoMo">MTN MoMo</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="FNB Zambia">FNB Zambia</option>
+                </select>
+              </div>
+              <div class="filter-group"><label>Status</label>
+                <select id="filterStatus" class="filter-select">
+                  <option value="">All Status</option>
+                  <option value="Unallocated">Unallocated</option>
+                  <option value="Allocated">Allocated</option>
+                  <option value="Reconciled">Reconciled</option>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Failed">Failed</option>
+                </select>
+              </div>
+              <div class="filter-group"><label>Property</label><select id="filterProperty" class="filter-select">
+                  <option value="">All Properties</option>
+                </select></div>
+              <div class="filter-group"><label>From</label><input type="date" id="filterFrom" class="filter-select"
+                  style="min-width:140px" /></div>
+              <div class="filter-group"><label>To</label><input type="date" id="filterTo" class="filter-select"
+                  style="min-width:140px" /></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <button class="btn btn-sm" id="btnResetFilters">Reset Filters</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Receipts Register • <span id="countLabel">0</span> records • Total ZMW <span id="totalLabel">0</span>
+                • Unallocated <span id="unallocLabel" class="amount outstanding">ZMW 0</span></h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="pageSize" class="filter-select" style="height:32px;min-width:100px">
+                  <option value="25">25 / page</option>
+                  <option value="50" selected>50 / page</option>
+                  <option value="100">100 / page</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="paymentsTable">
+                <thead>
+                  <tr>
+                    <th>Receipt ID</th>
+                    <th>Date</th>
+                    <th>Tenant</th>
+                    <th>Property</th>
+                    <th>Channel</th>
+                    <th>Reference Code</th>
+                    <th>Amount (ZMW)</th>
+                    <th>Allocation Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentsTbody">
+                  <tr>
+                    <td colspan="9" style="padding:24px;text-align:center;color:#64748B">Loading receipts...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div id="tableInfo">Showing 0 receipts</div>
+              <div style="display:flex;gap:6px"><button class="btn btn-sm" id="prevPage">Prev</button><button
+                  class="btn btn-sm" id="nextPage">Next</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <!-- Payment Drawer -->
+  <div class="drawer" id="paymentDrawer">
+    <div class="drawer-head">
+      <div class="drawer-title">
+        <div class="line1">
+          <h2 id="drawerTitle">PAY-2026-0001</h2><span class="mono" id="drawerId">PAY-2026-0001</span><span
+            class="pill blue" id="drawerStatus">Allocated</span>
+        </div>
+        <div class="meta" style="font-size:12px;color:#64748B;margin-top:6px"><span id="drawerSubtitle">Receipt details
+            • Tenant • Property • Channel</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-summary" id="drawerSummary"></div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" data-tab="allocation">Allocation</div>
+      <div class="drawer-tab" data-tab="ledger">Tenant Ledger</div>
+      <div class="drawer-tab" data-tab="details">Details</div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-actions" id="drawerActions">
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnPrintReceipt">Print Receipt</button><button
+          class="btn btn-sm" id="btnViewTenant">View Tenant</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-sm" id="btnUnallocate">Unallocate</button><button
+          class="btn btn-primary btn-sm" id="btnReconcileOne">Auto-Reconcile</button></div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu"></div>
+
+  <!-- Log Manual Payment Modal -->
+  <div class="modal-backdrop" id="paymentModalBackdrop">
+    <div class="modal" style="width:min(720px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Log Manual Payment</h3><button class="btn btn-ghost btn-sm"
+          id="btnClosePaymentModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Tenant *</label><select id="payTenant" class="form-select">
+              <option value="">Select Tenant</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Property</label><select id="payProperty"
+              class="form-select">
+              <option value="">Auto from tenant</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Channel *</label>
+            <select id="payChannel" class="form-select">
+              <option value="Bank Transfer">Bank Transfer - ZANACO</option>
+              <option value="Bank Transfer">Bank Transfer - Stanbic Bank</option>
+              <option value="Bank Transfer">Bank Transfer - FNB Zambia</option>
+              <option value="MTN Mobile Money">MTN Mobile Money</option>
+              <option value="MTN MoMo">MTN MoMo</option>
+              <option value="Airtel Money">Airtel Money</option>
+              <option value="Cheque">Cheque</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Bank / Provider</label><select id="payBank"
+              class="form-select">
+              <option>ZANACO</option>
+              <option>Stanbic Bank</option>
+              <option>FNB Zambia</option>
+              <option>MTN MoMo</option>
+              <option>Airtel Money</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Amount (ZMW) *</label><input type="number" id="payAmount"
+              class="form-input" placeholder="e.g. 45000" min="1" /></div>
+          <div class="form-group"><label class="form-label">Date *</label><input type="date" id="payDate"
+              class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Reference Code *</label><input type="text" id="payReference"
+              class="form-input" placeholder="e.g. ZAN-834920-2026" /></div>
+          <div class="form-group"><label class="form-label">Account / Mobile</label><input type="text" id="payAccount"
+              class="form-input" placeholder="**** 1234 or +26097xxxxxxx" /></div>
+          <div class="form-group full"><label class="form-label">Notes</label><textarea id="payNotes"
+              class="form-textarea" placeholder="e.g. Cash deposit at Levy Mall branch..."></textarea></div>
+          <div class="form-group full"
+            style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
+            <input type="checkbox" id="payAutoAllocate" checked style="margin-top:3px" />
+            <label for="payAutoAllocate" style="font-size:12.5px;color:#0F172A;cursor:pointer"><strong>Auto-reconcile
+                against oldest open invoices</strong><br /><span style="color:#64748B">If checked, system will match
+                this payment to tenant's oldest due invoices (FIFO), update invoice status in window.state, log audit
+                event, and saveState().</span></label>
+          </div>
+        </div>
+        <div id="payPreview"
+          style="margin-top:14px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;font-size:12.5px;color:#1E40AF;display:none">
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelPayment">Cancel</button><button class="btn btn-primary"
+          id="btnConfirmPayment">Log Payment</button></div>
+    </div>
+  </div>
+
+  <!-- Auto-Reconcile Panel -->
+  <div class="modal-backdrop" id="reconcileModalBackdrop">
+    <div class="modal" style="width:min(860px,100%)">
+      <div class="modal-head">
+        <h3 style="margin:0;font-size:16px;font-weight:800">Auto-Reconcile Ledger <span class="pill blue"
+            style="margin-left:8px">FIFO • Oldest First</span></h3><button class="btn btn-ghost btn-sm"
+          id="btnCloseReconcileModal">✕</button>
+      </div>
+      <div class="modal-body" id="reconcileBody">
+        <div style="text-align:center;padding:24px;color:#64748B">Loading reconciliation preview...</div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="btnCancelReconcile">Cancel</button><button class="btn btn-primary"
+          id="btnConfirmReconcile">Reconcile All Unallocated</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop">
+    <div class="modal confirm">
+      <div class="modal-head">
+        <h4 id="confirmTitle" style="margin:0">Confirm</h4>
+      </div>
+      <div class="modal-body" id="confirmBody">Are you sure?</div>
+      <div class="modal-foot"><button class="btn" id="confirmCancel">Cancel</button><button class="btn btn-danger"
+          id="confirmOk">Confirm</button></div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/finance-payments.js"></script>
+</body>
+
+</html>
