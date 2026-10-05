@@ -559,6 +559,27 @@ a {
   color: var(--text)
 }
 
+:is(div, section, article, button, a, [role="button"]):hover {
+  border-color: var(--border) !important;
+}
+
+.btn:hover,
+.pr-btn:hover,
+.icon-btn:hover {
+  border-color: transparent !important;
+}
+
+.btn-primary,
+.pr-btn-primary {
+  border-color: transparent !important;
+}
+
+.nav-item:hover,
+.nav-item.active,
+.nav-item.active:hover {
+  border-color: transparent !important;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);

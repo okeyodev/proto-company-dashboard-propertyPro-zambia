@@ -3386,6 +3386,140 @@ function exportExcel(selector, filename) {
   toast("Excel exported", "success");
 }
 
+function exportRecordsCsv(records, filename) {
+  if (!records.length) {
+    toast("There are no records to export", "error");
+    return;
+  }
+  const columns = [...new Set(records.flatMap(record => Object.keys(record)))];
+  const escapeCsv = value => {
+    const text = value == null
+      ? ""
+      : typeof value === "object"
+        ? JSON.stringify(value)
+        : String(value);
+    return `"${text.replace(/"/g, '""')}"`;
+  };
+  const csv = [
+    columns.map(escapeCsv).join(","),
+    ...records.map(record => columns.map(key => escapeCsv(record[key])).join(","))
+  ].join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${filename}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+  toast("CSV exported", "success");
+}
+
+function renderInvestmentRecordDetails(record) {
+  const labelFor = key => key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/^./, first => first.toUpperCase());
+  const displayValue = value => {
+    if (value == null || value === "") return "—";
+    if (Array.isArray(value)) return value.length ? value.map(displayValue).join(", ") : "—";
+    if (typeof value === "object") return Object.entries(value).map(([key, item]) => `${labelFor(key)}: ${displayValue(item)}`).join(" • ");
+    if (typeof value === "boolean") return value ? "Yes" : "No";
+    return String(value);
+  };
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">${Object.entries(record).map(([key, value]) => `
+    <div style="background:#FFF;border:1px solid var(--border);border-radius:9px;padding:11px;min-width:0">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">${escapeHtml(labelFor(key))}</div>
+      <div style="font-size:13px;font-weight:600;overflow-wrap:anywhere">${escapeHtml(displayValue(value))}</div>
+    </div>`).join("")}</div>`;
+}
+
+function wireInvestmentRecordActions(pageId, options) {
+  const addButton = document.getElementById(`${pageId}Add`);
+  const exportButton = document.getElementById(`${pageId}Export`);
+  const { records, getRecords, getTemplate, defaults = {}, requiredFields = [], onSaved } = options;
+
+  exportButton?.addEventListener("click", () => {
+    exportRecordsCsv(getRecords(), pageId.replace(/[^a-z0-9]+/gi, "_"));
+  });
+
+  addButton?.addEventListener("click", () => {
+    const template = getTemplate?.() || getRecords()[0] || records[0] || {};
+    const recordDefaults = { ...defaults };
+    if (!recordDefaults.assetClass && template.assetClass) recordDefaults.assetClass = template.assetClass;
+    (state.funds || []).forEach(fund => {
+      if (!recordDefaults.fundId && template.fundId !== undefined) recordDefaults.fundId = fund.id;
+    });
+    if (!recordDefaults.portfolioId && template.portfolioId !== undefined) {
+      recordDefaults.portfolioId = (state.portfolios || [])[0]?.id || "";
+    }
+
+    let idSequence = 1;
+    const prefix = pageId.toUpperCase().replace(/[^A-Z0-9]+/g, "-");
+    let id;
+    do {
+      id = `NEW-${prefix}-${String(idSequence++).padStart(3, "0")}`;
+    } while (records.some(record => record.id === id));
+
+    const fields = Object.entries(template).filter(([key, value]) => key !== "id" && (value == null || typeof value !== "object"));
+    if (!fields.length) {
+      fields.push(["name", ""], ["status", "Active"], ["owner", ""], ["value", 0]);
+    }
+    const fieldMarkup = fields.map(([key, sample]) => {
+      const value = recordDefaults[key] ?? (
+        /^(status|investmentStatus)$/i.test(key) ? sample || "Active" :
+          typeof sample === "number" ? 0 :
+            typeof sample === "boolean" ? false : ""
+      );
+      const type = typeof sample === "number" ? "number" : typeof sample === "boolean" ? "checkbox" : /^\d{4}-\d{2}-\d{2}$/.test(String(sample || "")) ? "date" : "text";
+      const required = requiredFields.includes(key) || /^(name|title|company|rule|description|requirement)$/i.test(key) ? "required" : "";
+      const checked = type === "checkbox" && value ? "checked" : "";
+      return `<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">${escapeHtml(labelForRecordField(key))}<input name="${escapeHtml(key)}" type="${type}" ${type === "checkbox" ? checked : `value="${escapeHtml(value)}"`} ${type === "number" ? 'step="any"' : ""} ${required} style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"></label>`;
+    }).join("");
+    let backdrop = document.getElementById(`${pageId}RecordEditor`);
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.id = `${pageId}RecordEditor`;
+      backdrop.className = "modal-backdrop";
+      document.body.appendChild(backdrop);
+    }
+    backdrop.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="${pageId}RecordEditorTitle">
+      <form><div class="modal-head"><h3 id="${pageId}RecordEditorTitle" style="margin:0">Add ${escapeHtml(pageId.replace(/[-_]/g, " "))} record</h3><button type="button" class="btn btn-ghost" data-close>✕</button></div>
+      <div class="modal-body"><div class="small muted" style="margin-bottom:10px">Record ID: <b>${escapeHtml(id)}</b></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px">${fieldMarkup}</div><div class="small muted" role="alert" style="margin-top:10px;color:#B91C1C"></div></div>
+      <div class="modal-foot" style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn-primary">Save Record</button></div></form></div>`;
+    backdrop.classList.add("open");
+    const close = () => backdrop.classList.remove("open");
+    backdrop.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", close));
+    backdrop.onclick = event => { if (event.target === backdrop) close(); };
+    backdrop.querySelector("form").addEventListener("submit", event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const record = { id, ...recordDefaults };
+      new FormData(form).forEach((value, key) => {
+        const sample = template[key];
+        const field = form.elements.namedItem(key);
+        record[key] = typeof sample === "number" ? Number(value) : typeof sample === "boolean" ? field.checked : String(value).trim();
+      });
+      const requiredValue = record.name || record.title || record.company || record.rule || record.description || record.requirement || record.action;
+      const invalidNumber = Object.values(record).some(value => typeof value === "number" && !Number.isFinite(value));
+      const missingRequired = requiredFields.some(key => record[key] == null || String(record[key]).trim() === "");
+      const error = backdrop.querySelector('[role="alert"]');
+      if ((requiredFields.length ? missingRequired : !requiredValue) || invalidNumber) {
+        error.textContent = invalidNumber ? "Enter valid numeric values." : "Complete the required record details before saving.";
+        return;
+      }
+      records.push(record);
+      saveState();
+      close();
+      onSaved();
+      toast("Record added", "success");
+    });
+  });
+}
+
+function labelForRecordField(key) {
+  return key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, first => first.toUpperCase());
+}
+
 function renderTable(data, containerId, columns) {}
 
 window.$ = $;
@@ -3408,6 +3542,9 @@ window.migrateTenants = migrateTenants;
 window.migrateLeases = migrateLeases;
 window.addAuditEvent = addAuditEvent;
 window.updatePropertyOccupancy = updatePropertyOccupancy;
+window.exportRecordsCsv = exportRecordsCsv;
+window.renderInvestmentRecordDetails = renderInvestmentRecordDetails;
+window.wireInvestmentRecordActions = wireInvestmentRecordActions;
 
 (function ensureGlobalElements() {
   function ensure() {

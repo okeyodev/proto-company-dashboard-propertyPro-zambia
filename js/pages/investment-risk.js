@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('investment-riskDrawerTitle').textContent=item.name||item.title||item.id;
     document.getElementById('investment-riskDrawerMeta').textContent=`${item.id} • ${item.assetClass||item.type||''}`;
     const body=document.getElementById('investment-riskBody');
-    body.innerHTML=`<div style="background:#FFF;border:1px solid var(--border);border-radius:10px;padding:14px"><h4>Record</h4><pre style="white-space:pre-wrap;font-size:12px;background:#F8FAFC;padding:12px;border-radius:8px;border:1px solid var(--border)">${escapeHtml(JSON.stringify(item,null,2))}</pre></div>`;
+    body.innerHTML=renderInvestmentRecordDetails(item);
     document.getElementById('investment-riskDrawer').classList.add('open');
   };
   document.getElementById('investment-riskBackdrop')?.addEventListener('click',()=> document.getElementById('investment-riskDrawer').classList.remove('open'));
@@ -75,5 +75,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('investment-riskPrev')?.addEventListener('click',()=>{ if(currentPage>1){currentPage--; renderTable();}});
   document.getElementById('investment-riskNext')?.addEventListener('click',()=>{ const max=Math.ceil(filtered.length/pageSize); if(currentPage<max){currentPage++; renderTable();}});
   populateFilters(); renderKpis(); renderTable();
+  wireInvestmentRecordActions('investment-risk',{
+    records:state[cfg.dataKey]||(state[cfg.dataKey]=[]),
+    getRecords:getFiltered,
+    onSaved:()=>{searchEl.value='';fundFilter.value='All';statusFilter.value='All';currentPage=1;populateFilters();renderKpis();renderTable();}
+  });
   const qp=new URLSearchParams(location.search); if(qp.get('id')) setTimeout(()=> openDrawer(qp.get('id')),400);
 });

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Register — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/enterprise.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+<body>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <main class="content">
+        <div class="enterprise-page">
+          <div class="page-head">
+            <div>
+              <h1>Document Register</h1>
+              <p>Manage property, lease, tenant, and investment documents in one searchable register. Uploaded files are stored in this browser with the application data.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn" id="btnExportDocuments">Export CSV</button>
+              <button class="btn btn-primary" id="btnAddDocument">Upload Document</button>
+            </div>
+          </div>
+          <div class="kpi-grid enterprise" id="documentKpis"></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input id="documentSearch" aria-label="Search documents" placeholder="Search title, ID, property, or type..." style="height:36px;min-width:220px;flex:1;border:1px solid var(--border);border-radius:8px;padding:0 10px">
+            <select id="documentTypeFilter" aria-label="Filter document type" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"><option value="All">All document types</option></select>
+            <select id="documentStatusFilter" aria-label="Filter document status" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"><option value="All">All statuses</option></select>
+            <select id="documentEntityFilter" aria-label="Filter linked record" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"><option value="All">All records</option><option value="property">Properties</option><option value="investment">Investments</option><option value="lease">Leases</option><option value="tenant">Tenants</option><option value="portfolio">Portfolio-wide</option></select>
+            <button class="btn" id="btnClearDocumentFilters">Clear</button>
+          </div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+            <div class="card-head" style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0">Documents</h3><span class="small muted" id="documentCount"></span>
+            </div>
+            <div style="overflow:auto">
+              <table style="width:100%;border-collapse:collapse;min-width:850px" id="documentTable">
+                <thead><tr style="text-align:left;background:var(--surface-2)">
+                  <th style="padding:11px">Document</th><th style="padding:11px">Type</th><th style="padding:11px">Linked record</th>
+                  <th style="padding:11px">Uploaded</th><th style="padding:11px">Version</th><th style="padding:11px">Status</th><th style="padding:11px">Actions</th>
+                </tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="small muted">File uploads are limited to 512 KB per document so they can be safely persisted in browser storage. Keep a separate backup of original files.</div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <script src="../js/common.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/documents.js"></script>
+  <script>Layout.init({ currentPage: 'documents' });</script>
+</body>
+</html>

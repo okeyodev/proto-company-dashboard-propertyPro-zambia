@@ -38,7 +38,8 @@ Sections: Overview, Investment, Property, Enterprise
 - Overview: Property Dashboard, Investment Dashboard
 - Investment: Portfolio & Asset Register, Asset Allocation, Pipeline, Appraisals, Fixed Income, Listed Equities, Unlisted, Collective, Cash, Risk, Compliance, Performance, Reports
 - Property: Register, Units, Map, Marketing, Add Property, Leasing, Finance, Operations
-- Enterprise: Approvals, Conditions Precedent, Documents, Audit Trail, Reports, Messages, Notices, Users, Settings
+- Enterprise: Approvals, Conditions Precedent, Documents, Audit Trail, Property Portfolio Reports, Messages, Notices, Users, Settings
+- Investment: Investment Reports (kept separate from operational property reports)
 
 ### Key Integration Points
 1. **Property Register → Investment**: Each property drawer has Investment tab showing Investment Asset ID, Fund, Portfolio, Acquisition Cost, Current Valuation, NOI, Yield, Allocation %, with button Open Investment Record → investment-assets.html?id=INV-P-001
@@ -51,6 +52,8 @@ Sections: Overview, Investment, Property, Enterprise
 - asset-allocation.html — target/min/max/current/drift/status, bar visualization, rebalancing recommendations
 - investment-pipeline.html — Kanban drag-drop across 8 stages (Origination → Monitoring), cards with amount/return/risk/owner
 - investment-appraisals.html — company profile, financial statements, liquidity/leverage/profitability/efficiency/valuation ratios auto-calculated, NPV/IRR/DCF calculator with scenarios Base/Upside/Downside, sensitivity table
+- reports.html — operational property portfolio report for property count, units, occupancy, valuation, rent, and status; does not include investment assets
+- documents.html — searchable enterprise document register with metadata edits, file uploads/downloads, and property/investment/lease/tenant links
 - approvals.html, conditions-precedent.html, fixed-income.html, listed-equities.html, unlisted-investments.html, collective-investments.html, investment-cash.html, investment-risk.html, investment-compliance.html, investment-performance.html, investment-reports.html, audit-trail.html — generic functional foundation with filters, KPIs, drawer, export.
 
 ### Calculation Layer

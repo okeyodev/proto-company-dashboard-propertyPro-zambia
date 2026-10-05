@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initCommon('investment-pipeline');
   const STAGES=['Origination','Screening','Appraisal','MIC','FIC','Conditions Precedent','Closing','Monitoring'];
   const COLORS={Origination:'#64748B',Screening:'#2563EB',Appraisal:'#D97706',MIC:'#7C3AED',FIC:'#0E7490','Conditions Precedent':'#DC2626',Closing:'#16A34A',Monitoring:'#0F172A'};
-  let q='', classFilter='All', stageFilter='All';
+  let q='', classFilter='All', stageFilter='All', selectedDealId=null;
 
   function filteredDeals(){
     let deals=[...(state.investmentDeals||[])];
@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div style="display:flex;justify-content:space-between;align-items:flex-start"><b style="font-size:13px">${escapeHtml(d.name)}</b><span class="pill ${d.riskRating==='High'?'red':d.riskRating==='Medium'?'amber':'green'}" style="font-size:10px">${d.riskRating}</span></div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px">${d.id} • ${d.assetClass}</div>
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><span class="pill blue">ZMW ${(d.amount/1_000_000).toFixed(1)}M</span><span class="pill gray">${d.expectedReturn}% IRR</span></div>
-          <div style="margin-top:8px;background:#F8FAFC;border:1px solid #F1F5F9;border-radius:8px;padding:6px 8px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:#0F172A;color:#FFF;display:grid;place-items:center;font-size:10px;font-weight:700">${d.owner.charAt(0)}</div><div><b style="font-size:11px">${d.owner}</b><div style="font-size:10px;color:var(--muted)">${d.daysInStage}d in stage</div></div></div><div style="font-size:10px;color:var(--muted)">${d.approvalStatus}</div></div>
-          <div style="margin-top:8px;font-size:11px;color:var(--muted)">Next: ${d.nextAction}</div>
+          <div style="margin-top:8px;background:#F8FAFC;border:1px solid #F1F5F9;border-radius:8px;padding:6px 8px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:#0F172A;color:#FFF;display:grid;place-items:center;font-size:10px;font-weight:700">${escapeHtml((d.owner||'?').charAt(0))}</div><div><b style="font-size:11px">${escapeHtml(d.owner)}</b><div style="font-size:10px;color:var(--muted)">${d.daysInStage}d in stage</div></div></div><div style="font-size:10px;color:var(--muted)">${escapeHtml(d.approvalStatus)}</div></div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted)">Next: ${escapeHtml(d.nextAction)}</div>
         </div>
       `).join('') || '<div class="small muted" style="padding:12px;text-align:center">No deals</div>'}</div></div>`;
     }).join('');
@@ -56,25 +56,114 @@ document.addEventListener('DOMContentLoaded',()=>{
   function renderTable(){
     const deals=filteredDeals();
     const tbody=document.querySelector('#dealTable tbody');
-    tbody.innerHTML=deals.map(d=>`<tr data-id="${d.id}" style="cursor:pointer"><td><b>${d.id}</b></td><td><b>${escapeHtml(d.name)}</b><div class="small muted">${d.fundId}</div></td><td><span class="pill blue">${d.assetClass}</span></td><td>ZMW ${(d.amount/1_000_000).toFixed(1)}M</td><td>${d.expectedReturn}%</td><td><span class="pill ${d.riskRating==='High'?'red':d.riskRating==='Medium'?'amber':'green'}">${d.riskRating}</span></td><td><span class="pill gray">${d.stage}</span></td><td>${d.owner}</td><td>${d.daysInStage}d</td><td><span class="pill ${d.approvalStatus==='Approved'?'green':d.approvalStatus==='Pending'?'amber':'blue'}">${d.approvalStatus}</span></td></tr>`).join('');
+    tbody.innerHTML=deals.map(d=>`<tr data-id="${d.id}" style="cursor:pointer"><td><b>${escapeHtml(d.id)}</b></td><td><b>${escapeHtml(d.name)}</b><div class="small muted">${escapeHtml(d.fundId)}</div></td><td><span class="pill blue">${escapeHtml(d.assetClass)}</span></td><td>ZMW ${(d.amount/1_000_000).toFixed(1)}M</td><td>${d.expectedReturn}%</td><td><span class="pill ${d.riskRating==='High'?'red':d.riskRating==='Medium'?'amber':'green'}">${escapeHtml(d.riskRating)}</span></td><td><span class="pill gray">${escapeHtml(d.stage)}</span></td><td>${escapeHtml(d.owner)}</td><td>${d.daysInStage}d</td><td><span class="pill ${d.approvalStatus==='Approved'?'green':d.approvalStatus==='Pending'?'amber':'blue'}">${escapeHtml(d.approvalStatus)}</span></td></tr>`).join('');
     tbody.querySelectorAll('tr').forEach(tr=> tr.addEventListener('click',()=> openDrawer(tr.dataset.id)));
   }
 
   function openDrawer(id){
     const deal=state.investmentDeals.find(d=>d.id===id);
     if(!deal) return;
+    selectedDealId=id;
     document.getElementById('dealDrawerTitle').textContent=`${deal.name} • ${deal.id}`;
     document.getElementById('dealDrawerBody').innerHTML=`
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
         <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:12px"><div class="small muted">Amount</div><div style="font-size:18px;font-weight:800">ZMW ${(deal.amount/1_000_000).toFixed(1)}M</div><div class="small muted">Expected ${deal.expectedReturn}% • ${deal.assetClass}</div></div>
         <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:12px"><div class="small muted">Stage</div><div style="font-size:16px;font-weight:700">${deal.stage}</div><div class="small muted">${deal.daysInStage} days • Owner ${deal.owner}</div></div>
       </div>
-      <div style="margin-top:14px"><h4 style="margin:0 0 8px">Details</h4><div style="display:grid;grid-template-columns:120px 1fr;gap:8px;font-size:13px"><div style="color:var(--muted)">Fund</div><div style="font-weight:600">${deal.fundId}</div><div style="color:var(--muted)">Risk</div><div><span class="pill ${deal.riskRating==='High'?'red':deal.riskRating==='Medium'?'amber':'green'}">${deal.riskRating}</span></div><div style="color:var(--muted)">Approval</div><div style="font-weight:600">${deal.approvalStatus}</div><div style="color:var(--muted)">Next Action</div><div style="font-weight:600">${deal.nextAction}</div></div></div>
+      <div style="margin-top:14px"><h4 style="margin:0 0 8px">Details</h4><div style="display:grid;grid-template-columns:120px 1fr;gap:8px;font-size:13px"><div style="color:var(--muted)">Fund</div><div style="font-weight:600">${escapeHtml(deal.fundId)}</div><div style="color:var(--muted)">Risk</div><div><span class="pill ${deal.riskRating==='High'?'red':deal.riskRating==='Medium'?'amber':'green'}">${escapeHtml(deal.riskRating)}</span></div><div style="color:var(--muted)">Approval</div><div style="font-weight:600">${escapeHtml(deal.approvalStatus)}</div><div style="color:var(--muted)">Next Action</div><div style="font-weight:600">${escapeHtml(deal.nextAction)}</div></div></div>
       <div style="margin-top:14px"><h4 style="margin:0 0 8px">Conditions Precedent</h4>${(state.conditionsPrecedent||[]).filter(cp=>cp.dealId===deal.id).map(cp=>`<div style="padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;display:flex;justify-content:space-between"><div><b style="font-size:12px">${cp.requirement}</b><div class="small muted">${cp.responsible} • Due ${cp.dueDate}</div></div><span class="pill ${cp.status==='Verified'?'green':cp.status==='Pending'?'amber':'blue'}">${cp.status}</span></div>`).join('') || '<div class="small muted">No CPs</div>'}</div>
     `;
     document.getElementById('dealDrawerBackdrop').classList.add('open');
     document.getElementById('btnOpenAppraisal').onclick=()=> goToPage(`investment-appraisals.html?id=${deal.id}`);
   }
+
+  function renderPipeline(){
+    renderStrip();renderKanban();renderTable();
+  }
+
+  function openDealEditor(deal=null){
+    let backdrop=document.getElementById('dealEditorBackdrop');
+    if(!backdrop){
+      backdrop=document.createElement('div');
+      backdrop.id='dealEditorBackdrop';
+      backdrop.className='modal-backdrop';
+      document.body.appendChild(backdrop);
+    }
+    const funds=state.funds||[];
+    const field=(label,name,value,type='text',required=true,step='')=>`<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">${label}<input name="${name}" type="${type}" value="${escapeHtml(value??'')}" ${required?'required':''} ${step?`step="${step}"`:''} style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"></label>`;
+    const option=(value,label,selected)=>`<option value="${escapeHtml(value)}" ${selected?'selected':''}>${escapeHtml(label)}</option>`;
+    backdrop.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="dealEditorTitle">
+      <form id="dealEditorForm">
+        <div class="modal-head"><h3 id="dealEditorTitle" style="margin:0">${deal?'Edit Investment Deal':'Add Investment Deal'}</h3><button type="button" class="btn btn-ghost" data-close>✕</button></div>
+        <div class="modal-body"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+          ${field('Deal name','name',deal?.name)}
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Asset class<select name="assetClass" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${['Property','Fixed Income','Listed Equity','Unlisted Equity'].map(v=>option(v,v,(deal?.assetClass||'Property')===v)).join('')}</select></label>
+          ${field('Amount (ZMW)','amount',deal?.amount??0,'number',true,'0.01')}
+          ${field('Expected return (%)','expectedReturn',deal?.expectedReturn??0,'number',true,'0.01')}
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Fund<select name="fundId" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${funds.map(f=>option(f.id,`${f.name} (${f.id})`,deal?.fundId===f.id)).join('')}</select></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Pipeline stage<select name="stage" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${STAGES.map(v=>option(v,v,(deal?.stage||'Origination')===v)).join('')}</select></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Risk rating<select name="riskRating" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${['Low','Medium','High'].map(v=>option(v,v,(deal?.riskRating||'Medium')===v)).join('')}</select></label>
+          ${field('Owner','owner',deal?.owner||'Chanda Mwanza')}
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Approval status<select name="approvalStatus" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${['Pending','In Review','Approved','Rejected'].map(v=>option(v,v,(deal?.approvalStatus||'Pending')===v)).join('')}</select></label>
+          ${field('Next action','nextAction',deal?.nextAction||'Initial screening')}
+        </div><div id="dealEditorError" role="alert" style="margin-top:10px;color:#B91C1C;font-size:12px"></div></div>
+        <div class="modal-foot" style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn-primary">Save Deal</button></div>
+      </form></div>`;
+    backdrop.classList.add('open');
+    backdrop.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>backdrop.classList.remove('open')));
+    backdrop.onclick=event=>{if(event.target===backdrop)backdrop.classList.remove('open');};
+    backdrop.querySelector('#dealEditorForm').addEventListener('submit',event=>{
+      event.preventDefault();
+      const values=Object.fromEntries(new FormData(event.currentTarget).entries());
+      const amount=Number(values.amount),expectedReturn=Number(values.expectedReturn),error=backdrop.querySelector('#dealEditorError');
+      if(!values.name.trim()||!values.owner.trim()||!values.nextAction.trim()||!values.fundId||!Number.isFinite(amount)||amount<0||!Number.isFinite(expectedReturn)||expectedReturn<0){
+        error.textContent='Enter the deal name, owner, next action, fund, and valid non-negative financial values.';
+        return;
+      }
+      const before=deal?{...deal}:null;
+      let id=deal?.id;
+      if(!id){
+        let sequence=1;
+        do{id=`DEAL-MAN-${String(sequence++).padStart(3,'0')}`;}
+        while((state.investmentDeals||[]).some(item=>item.id===id));
+      }
+      const record={
+        ...(deal||{}),
+        id,
+        name:values.name.trim(),assetClass:values.assetClass,amount,expectedReturn,fundId:values.fundId,
+        stage:values.stage,riskRating:values.riskRating,owner:values.owner.trim(),approvalStatus:values.approvalStatus,
+        nextAction:values.nextAction.trim(),daysInStage:deal?.stage===values.stage?(deal.daysInStage||1):1
+      };
+      state.investmentDeals=state.investmentDeals||[];
+      if(deal){
+        Object.assign(deal,record);
+        InvestmentCalc.addAuditEvent('UPDATE','investment',deal.id,'Investment deal updated',before,deal);
+      }else{
+        state.investmentDeals.push(record);
+        InvestmentCalc.addAuditEvent('CREATE','investment',record.id,'Investment deal created',null,record);
+      }
+      saveState();renderPipeline();backdrop.classList.remove('open');
+      if(deal)document.getElementById('dealDrawerBackdrop').classList.remove('open');
+      toast(deal?'Investment deal updated':'Investment deal created','success');
+    });
+  }
+
+  document.getElementById('btnAddDeal').addEventListener('click',()=>openDealEditor());
+  document.getElementById('btnEditDeal').addEventListener('click',()=>{
+    const deal=state.investmentDeals.find(item=>item.id===selectedDealId);
+    if(deal) openDealEditor(deal);
+  });
+  document.getElementById('btnDeleteDeal').addEventListener('click',()=>{
+    const id=selectedDealId;
+    const index=(state.investmentDeals||[]).findIndex(item=>item.id===id);
+    if(index<0)return;
+    const deal=state.investmentDeals[index];
+    if(!confirm(`Delete investment deal ${deal.id} (${deal.name})? This cannot be undone.`))return;
+    state.investmentDeals.splice(index,1);
+    InvestmentCalc.addAuditEvent('DELETE','investment',deal.id,'Investment deal deleted',deal,null);
+    saveState();document.getElementById('dealDrawerBackdrop').classList.remove('open');renderPipeline();
+    toast('Investment deal deleted','success');
+  });
 
   document.getElementById('dealSearch').addEventListener('input', e=>{ q=e.target.value.toLowerCase(); renderKanban(); renderTable(); renderStrip(); });
   document.querySelectorAll('#dealFilters .chip').forEach(ch=> ch.addEventListener('click',()=>{ document.querySelectorAll('#dealFilters .chip').forEach(c=>c.classList.remove('active')); ch.classList.add('active'); classFilter=ch.dataset.filter; renderKanban(); renderTable(); renderStrip(); }));

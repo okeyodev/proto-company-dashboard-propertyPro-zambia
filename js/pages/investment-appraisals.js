@@ -5,13 +5,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   const appraisals=state.appraisals||[];
   select.innerHTML=appraisals.map(a=>`<option value="${a.id}">${a.id} • ${a.company} • ${a.status}</option>`).join('');
   let current=appraisals[0]?.id;
+  let financialsEditing=false;
   if(new URLSearchParams(location.search).get('id')){
     const dealId=new URLSearchParams(location.search).get('id');
     const found=appraisals.find(a=>a.dealId===dealId);
     if(found) current=found.id;
   }
   select.value=current;
-  select.addEventListener('change', e=>{ current=e.target.value; renderAll(); });
+  select.addEventListener('change', e=>{ current=e.target.value; financialsEditing=false; renderAll(); });
 
   function getCurrent(){ return state.appraisals.find(a=>a.id===current); }
 
@@ -22,22 +23,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('companyProfile').innerHTML=`<b>${app.company}</b><div class="small muted" style="margin-top:4px">Deal ${app.dealId} • Appraisal ${app.id}</div><div style="margin-top:8px;font-size:12px">Revenue ZMW ${(app.revenue/1_000_000).toFixed(1)}M • EBITDA ZMW ${(app.ebitda/1_000_000).toFixed(1)}M • Net ZMW ${(app.netIncome/1_000_000).toFixed(1)}M</div><div style="margin-top:8px;font-size:11px;color:var(--muted)">Assets ZMW ${(app.assets/1_000_000).toFixed(1)}M • Liabilities ZMW ${(app.liabilities/1_000_000).toFixed(1)}M • Equity ZMW ${(app.equity/1_000_000).toFixed(1)}M</div>`;
     document.getElementById('analystInfo').innerHTML=`<b>${app.analyst||'Grace Banda'}</b><div class="small muted">Equity Research • Lusaka</div><div style="margin-top:6px"><span class="pill ${app.status==='Approved'?'green':app.status==='Under Review'?'amber':'blue'}">${app.status}</span></div>`;
 
-    // Financials editor
-    const finEl=document.getElementById('financialsEditor');
-    finEl.innerHTML=`
-      <div><h4 style="margin:0 0 8px;font-size:12px">Income Statement</h4>
-        <div class="ratio-row"><span>Revenue</span><b>ZMW ${(app.revenue/1_000_000).toFixed(2)}M</b></div>
-        <div class="ratio-row"><span>EBITDA</span><b>ZMW ${(app.ebitda/1_000_000).toFixed(2)}M</b></div>
-        <div class="ratio-row"><span>EBIT</span><b>ZMW ${(app.ebit/1_000_000).toFixed(2)}M</b></div>
-        <div class="ratio-row"><span>Net Income</span><b>ZMW ${(app.netIncome/1_000_000).toFixed(2)}M</b></div>
-      </div>
-      <div><h4 style="margin:0 0 8px;font-size:12px">Balance Sheet</h4>
-        <div class="ratio-row"><span>Total Assets</span><b>ZMW ${(app.assets/1_000_000).toFixed(2)}M</b></div>
-        <div class="ratio-row"><span>Total Liabilities</span><b>ZMW ${(app.liabilities/1_000_000).toFixed(2)}M</b></div>
-        <div class="ratio-row"><span>Equity</span><b>ZMW ${(app.equity/1_000_000).toFixed(2)}M</b></div>
-        <div class="ratio-row"><span>Cash (est.)</span><b>ZMW ${(app.assets*0.15/1_000_000).toFixed(2)}M</b></div>
-      </div>
-    `;
+    renderFinancials(app);
 
     // Ratios calculations
     const currentRatio = (app.assets*0.3) / (app.liabilities*0.4 || 1);
@@ -88,6 +74,84 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderCalc();
   }
 
+  function renderFinancials(app){
+    const fields=[
+      {key:'revenue',label:'Revenue',group:'Income Statement'},
+      {key:'ebitda',label:'EBITDA',group:'Income Statement'},
+      {key:'ebit',label:'EBIT',group:'Income Statement'},
+      {key:'netIncome',label:'Net Income',group:'Income Statement'},
+      {key:'assets',label:'Total Assets',group:'Balance Sheet'},
+      {key:'liabilities',label:'Total Liabilities',group:'Balance Sheet'},
+      {key:'equity',label:'Equity',group:'Balance Sheet'}
+    ];
+    document.getElementById('financialsEditor').innerHTML=['Income Statement','Balance Sheet'].map(group=>`
+      <div><h4 style="margin:0 0 8px;font-size:12px">${group}</h4>${fields.filter(field=>field.group===group).map(field=>financialsEditing
+        ? `<label style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;font-size:12px;font-weight:600">${field.label}<input data-financial="${field.key}" type="number" step="any" value="${Number(app[field.key])||0}" style="height:34px;border:1px solid var(--border);border-radius:8px;padding:0 9px"></label>`
+        : `<div class="ratio-row"><span>${field.label}</span><b>ZMW ${(Number(app[field.key]||0)/1_000_000).toFixed(2)}M</b></div>`
+      ).join('')}${group==='Balance Sheet'&&!financialsEditing?`<div class="ratio-row"><span>Cash (est.)</span><b>ZMW ${(app.assets*0.15/1_000_000).toFixed(2)}M</b></div>`:''}</div>
+    `).join('');
+    document.getElementById('btnSaveFinancials').disabled=!financialsEditing;
+    document.getElementById('btnSaveFinancials').style.opacity=financialsEditing?'1':'.55';
+  }
+
+  function refreshAppraisalOptions(){
+    const selected=current;
+    select.innerHTML=state.appraisals.map(a=>`<option value="${escapeHtml(a.id)}">${escapeHtml(a.id)} • ${escapeHtml(a.company)} • ${escapeHtml(a.status)}</option>`).join('');
+    current=state.appraisals.some(a=>a.id===selected)?selected:state.appraisals[0]?.id;
+    select.value=current||'';
+  }
+
+  function openNewAppraisal(){
+    let backdrop=document.getElementById('newAppraisalBackdrop');
+    if(!backdrop){
+      backdrop=document.createElement('div');
+      backdrop.id='newAppraisalBackdrop';
+      backdrop.className='modal-backdrop';
+      document.body.appendChild(backdrop);
+    }
+    const deals=state.investmentDeals||[];
+    const financialFields=[['revenue','Revenue'],['ebitda','EBITDA'],['ebit','EBIT'],['netIncome','Net Income'],['assets','Total Assets'],['liabilities','Total Liabilities'],['equity','Equity']];
+    backdrop.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="newAppraisalTitle"><form>
+      <div class="modal-head"><h3 id="newAppraisalTitle" style="margin:0">New Appraisal</h3><button type="button" class="btn btn-ghost" data-close>✕</button></div>
+      <div class="modal-body"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px">
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Company<input name="company" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"></label>
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Linked deal<select name="dealId" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${deals.map(deal=>`<option value="${escapeHtml(deal.id)}">${escapeHtml(deal.id)} • ${escapeHtml(deal.name)}</option>`).join('')}</select></label>
+        ${financialFields.map(([key,label])=>`<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">${label} (ZMW)<input name="${key}" type="number" step="any" value="0" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"></label>`).join('')}
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Analyst<input name="analyst" value="Grace Banda" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"></label>
+      </div><div role="alert" class="small muted" style="margin-top:10px;color:#B91C1C"></div></div>
+      <div class="modal-foot" style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn-primary">Create Appraisal</button></div></form></div>`;
+    backdrop.classList.add('open');
+    const close=()=>backdrop.classList.remove('open');
+    backdrop.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',close));
+    backdrop.onclick=event=>{if(event.target===backdrop) close();};
+    backdrop.querySelector('form').addEventListener('submit',event=>{
+      event.preventDefault();
+      const values=Object.fromEntries(new FormData(event.currentTarget).entries());
+      const amounts=financialFields.map(([key])=>[key,Number(values[key])]);
+      const error=backdrop.querySelector('[role="alert"]');
+      if(!values.company.trim()||!values.dealId||financialFields.some(([key])=>values[key].trim()==='')||amounts.some(([,value])=>!Number.isFinite(value))){
+        error.textContent='Enter a company, select a deal, and provide valid financial values.';
+        return;
+      }
+      let sequence=state.appraisals.length+1;
+      let id;
+      do{id=`APP-${String(sequence++).padStart(3,'0')}`;}while(state.appraisals.some(appraisal=>appraisal.id===id));
+      const appraisal={id,dealId:values.dealId,company:values.company.trim(),...Object.fromEntries(amounts),status:'Draft',analyst:values.analyst.trim()||'Grace Banda'};
+      state.appraisals.push(appraisal);
+      saveState();
+      current=id;
+      financialsEditing=false;
+      refreshAppraisalOptions();
+      renderAll();
+      close();
+      toast('Appraisal created','success');
+    });
+    if(!deals.length){
+      backdrop.querySelector('[role="alert"]').textContent='Create an investment deal before adding an appraisal.';
+      backdrop.querySelector('button[type="submit"]').disabled=true;
+    }
+  }
+
   function renderCalc(){
     const initial = parseFloat(document.getElementById('calcInitial')?.value||50000000);
     const cf1 = parseFloat(document.getElementById('calcCF1')?.value||5000000);
@@ -123,9 +187,28 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   document.getElementById('btnCalc').addEventListener('click', renderCalc);
   document.getElementById('scenarioSelect').addEventListener('change', renderCalc);
-  document.getElementById('btnNewAppraisal').addEventListener('click',()=> toast('New appraisal — form coming soon',''));
-  document.getElementById('btnEditFinancials').addEventListener('click',()=> toast('Edit financials',''));
-  document.getElementById('btnSaveFinancials').addEventListener('click',()=>{ toast('Saved','success'); renderAll(); });
+  document.getElementById('btnNewAppraisal').addEventListener('click',openNewAppraisal);
+  document.getElementById('btnEditFinancials').addEventListener('click',()=>{
+    const app=getCurrent();
+    if(!app) return;
+    financialsEditing=true;
+    renderFinancials(app);
+  });
+  document.getElementById('btnSaveFinancials').addEventListener('click',()=>{
+    const app=getCurrent();
+    if(!app||!financialsEditing) return;
+    const inputs=[...document.querySelectorAll('[data-financial]')];
+    const values=inputs.map(input=>[input.dataset.financial,Number(input.value)]);
+    if(inputs.some(input=>input.value.trim()==='')||values.some(([,value])=>!Number.isFinite(value))){
+      toast('Enter valid financial values','error');
+      return;
+    }
+    values.forEach(([key,value])=>{app[key]=value;});
+    financialsEditing=false;
+    saveState();
+    renderAll();
+    toast('Financial statements saved','success');
+  });
 
   renderAll();
 });

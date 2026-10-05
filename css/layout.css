@@ -175,9 +175,13 @@
 
 .nav-item.active {
   background: rgba(37, 99, 235, .18);
-  border-color: rgba(37, 99, 235, .28);
+  border-color: transparent;
   color: #DBEAFE;
   font-weight: 600;
+}
+
+.nav-item.active:hover {
+  border-color: transparent !important;
 }
 
 .nav-item .ico {
@@ -267,7 +271,7 @@
 
 .topbar .icon-btn:hover {
   background: #F8FAFC;
-  border-color: #CBD5E1;
+  border-color: var(--border);
   color: #0F172A;
 }
 

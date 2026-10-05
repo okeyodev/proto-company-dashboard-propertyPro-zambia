@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded',()=>{
             <div style="color:var(--muted)">Risk</div><div><span class="pill ${asset.riskRating==='High'?'red':asset.riskRating==='Medium'?'amber':'green'}">${asset.riskRating}</span></div>
           </div>
         </div>
-        ${asset.assetClass==='Property'?`<div style="margin-top:16px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px"><h4 style="margin:0 0 8px">Property Investment Performance</h4><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;font-size:13px"><div><div class="small muted">Rental Income</div><div style="font-weight:700">ZMW ${(asset.rentalIncome/1_000_000).toFixed(2)}M</div></div><div><div class="small muted">Operating Costs</div><div style="font-weight:700">ZMW ${(asset.operatingCosts/1_000_000).toFixed(2)}M</div></div><div><div class="small muted">NOI</div><div style="font-weight:800">ZMW ${(asset.noi/1_000_000).toFixed(2)}M</div></div><div><div class="small muted">Net Yield</div><div style="font-weight:800;color:#1D4ED8">${asset.yield}%</div></div></div><button class="pr-btn pr-btn-primary" style="margin-top:10px" onclick="goToPage('property-register.html?id=${asset.propertyId}')">Open Operational Property →</button></div>`:''}
+        ${asset.assetClass==='Property'&&asset.propertyId?`<div style="margin-top:16px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px"><h4 style="margin:0 0 8px">Property Investment Performance</h4><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;font-size:13px"><div><div class="small muted">Rental Income</div><div style="font-weight:700">ZMW ${(Number(asset.rentalIncome||0)/1_000_000).toFixed(2)}M</div></div><div><div class="small muted">Operating Costs</div><div style="font-weight:700">ZMW ${(Number(asset.operatingCosts||0)/1_000_000).toFixed(2)}M</div></div><div><div class="small muted">NOI</div><div style="font-weight:800">ZMW ${(Number(asset.noi||0)/1_000_000).toFixed(2)}M</div></div><div><div class="small muted">Net Yield</div><div style="font-weight:800;color:#1D4ED8">${asset.yield}%</div></div></div><button class="pr-btn pr-btn-primary" style="margin-top:10px" onclick="goToPage('property-register.html?id=${asset.propertyId}')">Open Operational Property →</button></div>`:''}
       `;
     } else if(tab==='financials'){
       body.innerHTML=`<div class="pr-kpi-grid" style="grid-template-columns:repeat(2,1fr)"><div class="pr-kpi"><div class="label">Cost</div><div class="value">ZMW ${(asset.acquisitionCost/1_000_000).toFixed(2)}M</div></div><div class="pr-kpi"><div class="label">Current Value</div><div class="value">ZMW ${(asset.currentValue/1_000_000).toFixed(2)}M</div></div><div class="pr-kpi"><div class="label">Unrealized P/L</div><div class="value" style="color:${(asset.unrealizedGain||0)>=0?'#16A34A':'#DC2626'}">ZMW ${((asset.unrealizedGain||0)/1_000_000).toFixed(2)}M</div></div><div class="pr-kpi"><div class="label">Yield</div><div class="value">${asset.yield||asset.coupon||0}%</div></div></div>`;
@@ -106,11 +106,105 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
+  function openAssetEditor(asset=null){
+    const modalId='assetEditorBackdrop';
+    let backdrop=document.getElementById(modalId);
+    if(!backdrop){
+      backdrop=document.createElement('div');
+      backdrop.id=modalId;
+      backdrop.className='modal-backdrop';
+      document.body.appendChild(backdrop);
+    }
+    const funds=state.funds||[];
+    const portfolios=state.portfolios||[];
+    const properties=state.properties||[];
+    const option=(value,label,selected)=>`<option value="${escapeHtml(value)}" ${selected?'selected':''}>${escapeHtml(label)}</option>`;
+    const field=(label,name,value,type='text',required=true,step='')=>`<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">${label}<input name="${name}" type="${type}" value="${escapeHtml(value??'')}" ${required?'required':''} ${step?`step="${step}"`:''} style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"></label>`;
+    backdrop.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="assetEditorTitle">
+      <form id="assetEditorForm">
+        <div class="modal-head"><h3 id="assetEditorTitle" style="margin:0">${asset?'Edit Investment Asset':'Add Investment Asset'}</h3><button type="button" class="btn btn-ghost" data-close>✕</button></div>
+        <div class="modal-body"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+          ${field('Asset name','name',asset?.name)}
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Asset class<select name="assetClass" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${['Property','Fixed Income','Listed Equity','Unlisted Equity','Collective Investments','Cash'].map(v=>option(v,v,(asset?.assetClass||'Property')===v)).join('')}</select></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Fund<select name="fundId" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${funds.map(f=>option(f.id,`${f.name} (${f.id})`,asset?.fundId===f.id)).join('')}</select></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Portfolio<select name="portfolioId" required style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${portfolios.map(p=>option(p.id,`${p.name} (${p.id})`,asset?.portfolioId===p.id)).join('')}</select></label>
+          ${field('Acquisition cost (ZMW)','acquisitionCost',asset?.acquisitionCost??0,'number',true,'0.01')}
+          ${field('Current value (ZMW)','currentValue',asset?.currentValue??0,'number',true,'0.01')}
+          ${field('Yield / coupon (%)','yield',asset?.yield??asset?.coupon??0,'number',false,'0.01')}
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Risk rating<select name="riskRating" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${['Low','Medium','High'].map(v=>option(v,v,(asset?.riskRating||'Medium')===v)).join('')}</select></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Status<select name="investmentStatus" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px">${['Active','Monitoring','Matured','Disposed'].map(v=>option(v,v,(asset?.investmentStatus||'Active')===v)).join('')}</select></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600">Linked property (optional)<select name="propertyId" style="height:36px;border:1px solid var(--border);border-radius:8px;padding:0 10px"><option value="">Not linked</option>${properties.map(p=>option(p.id,`${p.name} (${p.id})`,asset?.propertyId===p.id)).join('')}</select></label>
+        </div><div class="small muted" id="assetEditorError" role="alert" style="margin-top:10px;color:#B91C1C"></div></div>
+        <div class="modal-foot" style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn-primary">Save Asset</button></div>
+      </form></div>`;
+    backdrop.classList.add('open');
+    backdrop.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>backdrop.classList.remove('open')));
+    backdrop.onclick=event=>{if(event.target===backdrop) backdrop.classList.remove('open');};
+    const form=backdrop.querySelector('#assetEditorForm');
+    form.addEventListener('submit',event=>{
+      event.preventDefault();
+      const values=Object.fromEntries(new FormData(form).entries());
+      const cost=Number(values.acquisitionCost), currentValue=Number(values.currentValue), yieldValue=Number(values.yield||0);
+      const error=backdrop.querySelector('#assetEditorError');
+      if(!values.name.trim()||!values.fundId||!values.portfolioId||!Number.isFinite(cost)||cost<0||!Number.isFinite(currentValue)||currentValue<0||!Number.isFinite(yieldValue)||yieldValue<0){
+        error.textContent='Enter a name, fund, portfolio, and valid non-negative financial values.';
+        return;
+      }
+      const property=properties.find(p=>p.id===values.propertyId);
+      const before=asset?{...asset}:null;
+      let id=asset?.id;
+      if(!id){
+        let sequence=1;
+        do{id=`INV-MAN-${String(sequence++).padStart(3,'0')}`;}
+        while((state.investmentAssets||[]).some(item=>item.id===id));
+      }
+      const record={
+        ...(asset||{}),
+        id,
+        name:values.name.trim(),assetClass:values.assetClass,fundId:values.fundId,portfolioId:values.portfolioId,
+        acquisitionCost:cost,currentValue,unrealizedGain:currentValue-cost,
+        unrealizedGainPct:cost?(currentValue-cost)/cost*100:0,yield:yieldValue,riskRating:values.riskRating,
+        investmentStatus:values.investmentStatus,currency:asset?.currency||'ZMW',
+        propertyId:property?.id||null,propertyName:property?.name||null
+      };
+      if(property&&record.assetClass==='Property'&&!asset){
+        record.rentalIncome=(property.rent||0)*12*1_000_000;
+        record.operatingCosts=record.rentalIncome*.28;
+        record.noi=record.rentalIncome-record.operatingCosts;
+        record.occupancy=property.units?Math.round((property.occupied||0)/property.units*100):0;
+      }
+      state.investmentAssets=state.investmentAssets||[];
+      if(asset){
+        Object.assign(asset,record);
+        InvestmentCalc.addAuditEvent('UPDATE','investment',asset.id,'Investment asset updated',before,asset);
+      }else{
+        state.investmentAssets.push(record);
+        InvestmentCalc.addAuditEvent('CREATE','investment',record.id,'Investment asset created',null,record);
+      }
+      saveState();
+      populateFilters();renderKpis();renderTable();backdrop.classList.remove('open');
+      if(asset){selectedId=asset.id;document.getElementById('drawerAssetName').textContent=asset.name;document.getElementById('drawerAssetMeta').textContent=`${asset.id} • ${asset.assetClass} • ${asset.fundId} • ${asset.portfolioId}`;renderDrawerTab('overview');}
+      toast(asset?'Investment asset updated':'Investment asset created','success');
+    });
+  }
+
   document.querySelectorAll('#assetDrawerTabs .tab').forEach(t=> t.addEventListener('click',()=> renderDrawerTab(t.dataset.tab)));
   document.getElementById('assetDrawerBackdrop').addEventListener('click',()=> document.getElementById('assetDrawer').classList.remove('open'));
   document.getElementById('btnCloseAssetDrawer').addEventListener('click',()=> document.getElementById('assetDrawer').classList.remove('open'));
   document.getElementById('btnViewProperty').addEventListener('click',()=>{ const a=state.investmentAssets.find(x=>x.id===selectedId); if(a?.propertyId) goToPage(`property-register.html?id=${a.propertyId}`); });
   document.getElementById('btnViewUnits').addEventListener('click',()=>{ const a=state.investmentAssets.find(x=>x.id===selectedId); if(a?.propertyId) goToPage(`units.html?property=${a.propertyId}`); });
+  document.getElementById('btnAddAsset').addEventListener('click',()=>openAssetEditor());
+  document.getElementById('btnEditAsset').addEventListener('click',()=>{const asset=state.investmentAssets.find(a=>a.id===selectedId);if(asset)openAssetEditor(asset);});
+  document.getElementById('btnDeleteAsset').addEventListener('click',()=>{
+    const index=(state.investmentAssets||[]).findIndex(a=>a.id===selectedId);
+    if(index<0) return;
+    const asset=state.investmentAssets[index];
+    if(!confirm(`Delete investment asset ${asset.id} (${asset.name})? This cannot be undone.`)) return;
+    state.investmentAssets.splice(index,1);
+    InvestmentCalc.addAuditEvent('DELETE','investment',asset.id,'Investment asset deleted',asset,null);
+    saveState();document.getElementById('assetDrawer').classList.remove('open');renderKpis();renderTable();
+    toast('Investment asset deleted','success');
+  });
 
   [searchEl,fFund,fPortfolio,fClass,fRisk,fStatus].forEach(el=> el.addEventListener(el.tagName==='INPUT'?'input':'change',()=>{ currentPage=1; renderKpis(); renderTable(); }));
   document.getElementById('btnClearAssetFilters').addEventListener('click',()=>{ searchEl.value=''; fFund.value='All'; fPortfolio.value='All'; fClass.value='All'; fRisk.value='All'; fStatus.value='All'; currentPage=1; renderKpis(); renderTable(); });

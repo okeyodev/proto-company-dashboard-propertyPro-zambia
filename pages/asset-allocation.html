@@ -2,102 +2,106 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset Allocation — PropertyPro Zambia</title>
-    <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/layout.css">
-    <link rel="stylesheet" href="../css/pages/asset-allocation.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asset Allocation — PropertyPro Zambia</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/asset-allocation.css">
 </head>
 
 <body>
-    <div class="app">
-        <div id="app-sidebar"></div>
-        <div class="main">
-            <div id="app-topbar"></div>
-            <div id="app-breadcrumb"></div>
-            <main class="content">
-                <div class="pr-page">
-                    <div class="pr-header">
-                        <div>
-                            <h1>Asset Allocation</h1>
-                            <p>Strategic allocation, permitted ranges, drift and rebalancing</p>
-                        </div>
-                        <div class="pr-header-actions"><select id="allocFundSelect" class="pr-select"
-                                style="height:38px"></select><button class="pr-btn" id="btnRebalance">Rebalance
-                                Check</button><button class="pr-btn pr-btn-primary" id="btnEditAlloc">Edit
-                                Targets</button></div>
-                    </div>
-                    <div class="pr-kpi-grid" id="allocKpiGrid"></div>
-                    <div class="dashboard-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-                        <div class="card">
-                            <div class="card-head">
-                                <h3>Allocation Overview</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="allocVisual"></div>
-                                <div id="allocLegend" style="margin-top:12px"></div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-head">
-                                <h3>Drift Analysis</h3>
-                            </div>
-                            <div class="card-body" id="driftAnalysis"></div>
-                        </div>
-                    </div>
-                    <div class="pr-table-card" style="margin-top:14px">
-                        <div class="pr-table-wrap">
-                            <table class="pr-table" id="allocTable">
-                                <thead>
-                                    <tr>
-                                        <th>Asset Class</th>
-                                        <th>Target %</th>
-                                        <th>Min</th>
-                                        <th>Max</th>
-                                        <th>Current %</th>
-                                        <th>Current Value</th>
-                                        <th>Drift</th>
-                                        <th>Status</th>
-                                        <th>Rebalancing</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card" style="margin-top:14px">
-                        <div class="card-head">
-                            <h3>Rebalancing Recommendations</h3>
-                        </div>
-                        <div class="card-body" id="rebalanceRec"></div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-    <div id="toastContainer" class="toast-container"></div>
-    <div id="globalSearchBackdrop" class="modal-backdrop">
-        <div class="modal">
-            <div class="modal-head">
-                <div style="display:flex;align-items:center;gap:10px;flex:1"><svg width="18" height="18"
-                        viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8">
-                        <circle cx="11" cy="11" r="6" />
-                        <path d="M20 20l-3.5-3.5" />
-                    </svg><input id="globalSearchInput" placeholder="Search..."
-                        style="flex:1;border:0;outline:0;font-size:14px" autofocus /></div><button class="btn btn-ghost"
-                    onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+  <div class="app">
+    <div id="app-sidebar"></div>
+    <div class="main">
+      <div id="app-topbar"></div>
+      <div id="app-breadcrumb"></div>
+      <main class="content">
+        <div class="pr-page">
+          <div class="pr-header">
+            <div>
+              <h1>Asset Allocation</h1>
+              <p>Strategic allocation, permitted ranges, drift and rebalancing</p>
             </div>
-            <div class="modal-body">
-                <div id="globalSearchResults"></div>
+            <div class="pr-header-actions">
+              <select id="allocFundSelect" class="pr-select"
+                style="height:38px">
+              </select>
+                <button class="pr-btn" id="btnRebalance">Rebalance
+                Check</button>
+                <button class="pr-btn pr-btn-primary" id="btnEditAlloc">Edit
+                Targets</button></div>
+          </div>
+          <div class="pr-kpi-grid" id="allocKpiGrid"></div>
+          <div class="dashboard-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="card">
+              <div class="card-head">
+                <h3>Allocation Overview</h3>
+              </div>
+              <div class="card-body">
+                <div id="allocVisual"></div>
+                <div id="allocLegend" style="margin-top:12px"></div>
+              </div>
             </div>
+            <div class="card">
+              <div class="card-head">
+                <h3>Drift Analysis</h3>
+              </div>
+              <div class="card-body" id="driftAnalysis"></div>
+            </div>
+          </div>
+          <div class="pr-table-card" style="margin-top:14px">
+            <div class="pr-table-wrap">
+              <table class="pr-table" id="allocTable">
+                <thead>
+                  <tr>
+                    <th>Asset Class</th>
+                    <th>Target %</th>
+                    <th>Min</th>
+                    <th>Max</th>
+                    <th>Current %</th>
+                    <th>Current Value</th>
+                    <th>Drift</th>
+                    <th>Status</th>
+                    <th>Rebalancing</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="card-head">
+              <h3>Rebalancing Recommendations</h3>
+            </div>
+            <div class="card-body" id="rebalanceRec"></div>
+          </div>
         </div>
+      </main>
     </div>
-    <script src="../js/common.js"></script>
-    <script src="../js/investment-calculations.js"></script>
-    <script src="../js/layout.js"></script>
-    <script src="../js/pages/asset-allocation.js"></script>
-    <script>Layout.init({ currentPage: 'asset-allocation' });</script>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="globalSearchBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex:1"><svg width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="#64748B" stroke-width="1.8">
+            <circle cx="11" cy="11" r="6" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg><input id="globalSearchInput" placeholder="Search..." style="flex:1;border:0;outline:0;font-size:14px"
+            autofocus /></div><button class="btn btn-ghost"
+          onclick="document.getElementById('globalSearchBackdrop').classList.remove('open')">Esc</button>
+      </div>
+      <div class="modal-body">
+        <div id="globalSearchResults"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/common.js"></script>
+  <script src="../js/investment-calculations.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/pages/asset-allocation.js"></script>
+  <script>Layout.init({ currentPage: 'asset-allocation' });</script>
 </body>
 
 </html>

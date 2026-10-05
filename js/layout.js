@@ -320,13 +320,6 @@
       file: "operations-development.html",
       icon: ICONS.development,
     },
-    {
-      id: "utilities",
-      section: "Operations",
-      label: "Utilities",
-      file: "utilities.html",
-      icon: ICONS.utilities,
-    },
     // Legacy aliases for backward compatibility
     {
       id: "maintenance",
@@ -399,7 +392,7 @@
     {
       id: "reports",
       section: "Enterprise",
-      label: "Reports",
+      label: "Property Portfolio Reports",
       file: "reports.html",
       icon: ICONS.reports,
     },

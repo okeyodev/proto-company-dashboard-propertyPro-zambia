@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('investment-complianceDrawerTitle').textContent=item.name||item.title||item.id;
     document.getElementById('investment-complianceDrawerMeta').textContent=`${item.id} • ${item.assetClass||item.type||''}`;
     const body=document.getElementById('investment-complianceBody');
-    body.innerHTML=`<div style="background:#FFF;border:1px solid var(--border);border-radius:10px;padding:14px"><h4>Record</h4><pre style="white-space:pre-wrap;font-size:12px;background:#F8FAFC;padding:12px;border-radius:8px;border:1px solid var(--border)">${escapeHtml(JSON.stringify(item,null,2))}</pre></div>`;
+    body.innerHTML=renderInvestmentRecordDetails(item);
     document.getElementById('investment-complianceDrawer').classList.add('open');
   };
   document.getElementById('investment-complianceBackdrop')?.addEventListener('click',()=> document.getElementById('investment-complianceDrawer').classList.remove('open'));
@@ -75,5 +75,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('investment-compliancePrev')?.addEventListener('click',()=>{ if(currentPage>1){currentPage--; renderTable();}});
   document.getElementById('investment-complianceNext')?.addEventListener('click',()=>{ const max=Math.ceil(filtered.length/pageSize); if(currentPage<max){currentPage++; renderTable();}});
   populateFilters(); renderKpis(); renderTable();
+  wireInvestmentRecordActions('investment-compliance',{
+    records:state[cfg.dataKey]||(state[cfg.dataKey]=[]),
+    getRecords:getFiltered,
+    onSaved:()=>{searchEl.value='';fundFilter.value='All';statusFilter.value='All';currentPage=1;populateFilters();renderKpis();renderTable();}
+  });
   const qp=new URLSearchParams(location.search); if(qp.get('id')) setTimeout(()=> openDrawer(qp.get('id')),400);
 });
