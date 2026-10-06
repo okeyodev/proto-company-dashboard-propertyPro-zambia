@@ -197,6 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const $id = (s) => document.getElementById(s);
   const kanbanScroll = $id("kanbanScroll");
   const vacancyTableWrap = $id("vacancyTable");
+  const detailDrawer = $id("detailDrawer");
   const searchMain = $id("mkSearch");
   const propFilter = $id("fProperty");
   const cityFilter = $id("fCity");
@@ -421,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <button class="btn" onclick="document.getElementById('moveStageSelect').focus()">Move Stage ▾</button>
               <button class="btn" onclick="createApplicationFrom('${v.id}')">+ Create Application</button>
             </div>
-            <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <div class="move-stage-controls" style="margin-top:12px;display:flex;gap:8px;align-items:center">
               <label class="small" style="font-weight:600">Move to stage</label>
               <select id="moveStageSelect" class="select" style="min-width:160px">
                 ${STAGES.map((s) => `<option value="${s.key}" ${s.key === v.stage ? "selected" : ""}>${s.label}</option>`).join("")}
@@ -470,8 +471,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     }
-    openDrawer();
+    detailDrawer?.classList.add("open");
   }
+
+  $id("btnCloseVacancyDrawer")?.addEventListener("click", () => {
+    detailDrawer?.classList.remove("open");
+  });
   window.createApplicationFrom = (vacId) => {
     const v = vacancies.find((x) => x.id === vacId);
     if (!v) return;

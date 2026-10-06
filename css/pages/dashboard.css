@@ -1152,6 +1152,23 @@
   }
 }
 
+@media(max-width:768px) {
+  #investmentSnapshotKpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #portfolioInvestmentSnapshot .card-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media(max-width:480px) {
+  #investmentSnapshotKpis {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
 .path-draw {
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;

@@ -718,6 +718,23 @@
     flex: 1
   }
 
+  .mk-controls > div[style*="margin-left:auto"] {
+    width: 100%;
+    margin-left: 0 !important;
+    gap: 8px;
+  }
+
+  .mk-controls > div[style*="margin-left:auto"] .select,
+  .mk-controls > div[style*="margin-left:auto"] .btn {
+    flex: 1 1 130px;
+    min-width: 0;
+  }
+
+  .mk-search,
+  .mk-search input {
+    width: 100%;
+  }
+
   .kanban-col {
     flex: 0 0 84vw;
     width: 84vw
@@ -739,7 +756,38 @@
   }
 
   .mk-page {
-    padding-bottom: 16px;
+    padding-bottom: 24px;
+  }
+
+  .pipeline-strip,
+  .kanban-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  .kanban-col {
+    scroll-snap-align: start;
+  }
+
+  .table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-wrap table {
+    min-width: 760px;
+  }
+
+  .move-stage-controls {
+    align-items: stretch !important;
+    flex-direction: column;
+  }
+
+  .move-stage-controls .select,
+  .move-stage-controls .btn {
+    width: 100%;
+    min-width: 0 !important;
   }
 }
 
