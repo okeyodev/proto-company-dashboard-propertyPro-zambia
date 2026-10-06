@@ -430,7 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
         location.href = "pages/leases.html?create=1";
         break;
       case "record-payment":
-        location.href = "pages/payments.html?record=1";
+        location.href = "pages/finance-payments.html?record=1";
         break;
       case "create-maintenance":
         openDrawer("New Maintenance Request", "Create work order", {

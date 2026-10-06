@@ -107,7 +107,7 @@
       if (property || tenant) applyFilters();
       else applyFilters();
       // If creating from application/tenant, open modal prefilled
-      if (application || tenant) {
+      if (application || tenant || params.get("create") === "1") {
         const prefill = {};
         if (tenant) prefill.tenantId = tenant;
         if (property) prefill.propertyId = property;

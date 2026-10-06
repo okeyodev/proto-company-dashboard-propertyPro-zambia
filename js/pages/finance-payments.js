@@ -65,6 +65,7 @@
     const params = new URLSearchParams(location.search);
     const id = params.get('id');
     if(id){ setTimeout(()=>openDrawer(id), 450); }
+    else if(params.get('record') === '1'){ openPaymentModal(); }
   }
 
   function populateFilters(){

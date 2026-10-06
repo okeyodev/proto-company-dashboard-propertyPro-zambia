@@ -548,6 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
   populatePropertyDropdowns();
   bindEvents();
   renderAll();
+  if (new URLSearchParams(location.search).get('compose') === '1') openDrawer();
 
   console.log('[Enterprise Notices] ToR 9.2 loaded -', (getState().notices||[]).length, 'notices');
 });

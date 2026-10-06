@@ -808,6 +808,7 @@ document.addEventListener("DOMContentLoaded", () => {
   populateFilters();
   bindEvents();
   renderTable();
+  if (new URLSearchParams(location.search).get('create') === '1') openNewModal();
 
   // Auto-refresh SLA badges every 60s
   setInterval(() => { renderTable(); }, 60000);
